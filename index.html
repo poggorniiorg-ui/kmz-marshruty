@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1216">
+<link rel="manifest" href="manifest.json">
+<title>Маршруты · КМЗ №1</title>
+<style>
+:root[data-theme="dark"]{
+  --bg:#0E1216;--surface:#161C22;--surface2:#1E262E;--line:#28323B;
+  --text:#F3F1EC;--muted:#7F8E9B;--accent:#E9B23C;
+  --solid:#F3F1EC;--onsolid:#0E1216;
+  --ok:#57B980;--warn:#E0785F;--shadow:none;--imgbg:#1E262E;--sheet:#141A20;
+}
+:root[data-theme="light"]{
+  --bg:#FBFAF8;--surface:#FFFFFF;--surface2:#F2F0EC;--line:#E7E4DE;
+  --text:#121619;--muted:#767D84;--accent:#B8860B;
+  --solid:#121619;--onsolid:#FFFFFF;
+  --ok:#2E8B57;--warn:#BF5238;--shadow:0 1px 3px rgba(18,22,25,.07);--imgbg:#F2F0EC;--sheet:#FFFFFF;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overscroll-behavior-y:none}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.45;padding-bottom:100px;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+select:focus,input:focus,textarea:focus{outline:none}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+
+header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(safe-area-inset-top) + 12px) 16px 0}
+.hrow{display:flex;align-items:center;gap:8px}
+.route-pick{flex:1;background:transparent;border:none;padding:2px 24px 2px 0;font-weight:700;font-size:25px;letter-spacing:-.02em;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 8px) 58%,calc(100% - 3px) 58%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-size:15px;flex:none}
+.icon-btn.on{background:var(--accent);color:#12191F}
+.search{margin-top:14px;width:100%;background:var(--surface2);border:none;border-radius:12px;padding:12px 15px;font-size:16px}
+.search::placeholder{color:var(--muted)}
+.tabs{display:flex;gap:22px;margin-top:16px;border-bottom:1px solid var(--line)}
+.tab{padding:0 0 11px;font-size:15px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:-.01em}
+.tab.on{color:var(--text);border-color:var(--accent)}
+.tab span{font-weight:500;font-size:13px;color:var(--muted);margin-left:2px}
+.progress{padding:12px 16px 0}
+.pbar{height:4px;border-radius:3px;background:var(--surface2);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--ok);border-radius:3px;transition:width .3s ease}
+.meta{padding:8px 16px 2px;color:var(--muted);font-size:13px}
+.meta b{color:var(--text);font-weight:600}
+
+main{padding:8px 16px}
+.stop{display:flex;gap:12px;background:var(--surface);border-radius:16px;padding:12px 8px 12px 13px;margin-bottom:8px;align-items:center;box-shadow:var(--shadow);position:relative;touch-action:pan-y}
+.stop.done{opacity:.45}
+.stop.fail{box-shadow:inset 0 0 0 1px rgba(224,120,95,.45),var(--shadow)}
+.stop.sel{box-shadow:inset 0 0 0 2px var(--accent)}
+.stop.drag{z-index:5;box-shadow:0 12px 30px rgba(0,0,0,.3);transform:scale(1.02)}
+.stop.shift{transition:transform .16s ease}
+.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--surface2);color:var(--muted);font-weight:600;font-size:13px;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.stop.done .num{background:rgba(87,185,128,.16);color:var(--ok)}
+.stop.fail .num{background:rgba(224,120,95,.16);color:var(--warn)}
+.sbody{min-width:0;flex:1}
+.sname{font-weight:600;font-size:16.5px;line-height:1.25;letter-spacing:-.01em}
+.saddr{color:var(--muted);font-size:13.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.marks{color:var(--muted);font-size:12.5px;margin-top:4px;display:flex;gap:9px;flex-wrap:wrap}
+.marks .warn{color:var(--warn)}
+.marks .ok{color:var(--ok)}
+.thumb{width:48px;height:48px;border-radius:12px;object-fit:cover;flex:none;background:var(--imgbg)}
+.tick{flex:none;width:26px;height:26px;border-radius:8px;box-shadow:inset 0 0 0 2px var(--line);display:grid;place-items:center;font-size:13px;color:#12191F}
+.tick.on{background:var(--accent);box-shadow:none}
+.kebab{flex:none;width:34px;height:40px;display:grid;place-items:center;color:var(--muted);font-size:18px;border-radius:10px}
+.grip{flex:none;width:28px;height:44px;display:grid;place-items:center;color:var(--muted);touch-action:none;cursor:grab}
+.empty{color:var(--muted);text-align:center;padding:52px 24px;font-size:15px;line-height:1.55}
+.gsec{margin:18px 0 8px;color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:25;background:linear-gradient(to top,var(--bg) 72%,transparent);padding:16px;display:flex;gap:8px}
+.btn{flex:1;background:var(--solid);color:var(--onsolid);font-weight:650;font-size:16px;border-radius:14px;padding:15px;text-align:center;display:flex;align-items:center;justify-content:center;gap:9px;letter-spacing:-.01em}
+.btn.ghost{background:var(--surface2);color:var(--text);flex:none;width:50px;font-size:17px;font-weight:400;padding:15px 0}
+.btn.accent{background:var(--accent);color:#12191F}
+.btn.flat{background:var(--surface2);color:var(--text)}
+.btn.danger{background:transparent;color:var(--warn);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.good{background:var(--ok);color:#fff}
+.btn:disabled{opacity:.45}
+
+.selbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--sheet);border-top:1px solid var(--line);padding:12px 16px calc(env(safe-area-inset-bottom) + 12px);display:none;gap:8px;align-items:center;box-shadow:0 -8px 30px rgba(0,0,0,.2)}
+.selbar.on{display:flex}
+.selbar .cnt{font-weight:650;flex:1}
+.selbar button{background:var(--surface2);border-radius:11px;padding:11px 13px;font-size:14.5px}
+.selbar button.warn{color:var(--warn)}
+
+.sheet{position:fixed;inset:0;z-index:40;background:rgba(6,9,12,.5);display:none;align-items:flex-end;backdrop-filter:blur(2px)}
+.sheet.open{display:flex}
+.card{position:relative;background:var(--sheet);width:100%;max-height:92vh;overflow-y:auto;border-radius:24px 24px 0 0;padding:22px 18px calc(env(safe-area-inset-bottom) + 18px);animation:up .22s cubic-bezier(.2,.8,.3,1)}
+@keyframes up{from{transform:translateY(26px)}to{transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.card{animation:none}}
+.card h2{margin:0;font-size:24px;line-height:1.18;letter-spacing:-.02em;padding-right:42px}
+.close{position:absolute;right:14px;top:18px;font-size:21px;color:var(--muted);line-height:1;padding:4px 8px}
+.line{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);font-size:15.5px}
+.line .k{color:var(--muted);flex:none;width:92px;font-size:13.5px;padding-top:1px}
+.photo{width:100%;border-radius:16px;margin:18px 0 2px;display:block;background:var(--imgbg)}
+.note-box{background:var(--surface2);border-radius:14px;padding:13px 15px;margin-top:16px;font-size:15px;white-space:pre-wrap;line-height:1.5}
+.row{display:flex;gap:8px;margin-top:10px}
+.row .btn{font-size:15.5px;padding:14px}
+.menu-item{display:flex;align-items:center;gap:13px;padding:15px 4px;border-bottom:1px solid var(--line);font-size:16px}
+.menu-item:last-child{border:none}
+.menu-item .ic{width:22px;text-align:center;color:var(--muted)}
+.menu-item.warn{color:var(--warn)}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px;font-weight:600}
+.field input,.field textarea,.field select{width:100%;background:var(--surface2);border:none;border-radius:12px;padding:13px}
+.field textarea{min-height:78px;resize:vertical}
+.hint{font-size:12.5px;color:var(--muted);margin-top:7px;line-height:1.45}
+.mini{background:var(--surface2);border-radius:10px;padding:10px 13px;font-size:14px;margin-top:8px;display:inline-block}
+.toast{position:fixed;left:50%;bottom:112px;transform:translateX(-50%);z-index:60;background:var(--solid);color:var(--onsolid);border-radius:12px;padding:12px 16px;font-size:14.5px;opacity:0;pointer-events:none;transition:opacity .18s;max-width:90vw;display:flex;align-items:center;gap:14px;font-weight:500}
+.toast.show{opacity:1;pointer-events:auto}
+.toast button{font-weight:700;color:var(--accent);white-space:nowrap}
+.bar{border-radius:12px;padding:11px 14px;margin:0 16px 10px;font-size:13.5px;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface2)}
+.bar.admin{color:var(--accent)}
+.bar.offline{color:var(--warn)}
+.ord{display:flex;gap:6px}
+.ord button{width:38px;height:38px;border-radius:10px;background:var(--surface2);font-size:14px}
+.steps{color:var(--muted);font-size:14.5px;margin:10px 0 16px;line-height:1.7}
+.steps b{color:var(--text);font-weight:600}
+.phrow{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.phrow span{flex:1;min-width:0;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phrow input{width:150px;background:var(--surface2);border:none;border-radius:10px;padding:10px}
+#map{width:100%;height:70vh;border-radius:16px;overflow:hidden;background:var(--surface2)}
+.leaflet-container{background:var(--surface2)!important;font:inherit}
+.pin{background:var(--accent);color:#12191F;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-size:12px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.pin.done{background:var(--ok);color:#fff}
+.pin.fail{background:var(--warn);color:#fff}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <select class="route-pick" id="routePick"></select>
+    <button class="icon-btn" id="mapBtn" title="Карта">🗺</button>
+    <button class="icon-btn" id="themeBtn" title="Тема">☾</button>
+    <button class="icon-btn" id="adminBtn" title="Редактирование">🔒</button>
+  </div>
+  <input class="search" id="search" placeholder="Поиск по всем маршрутам…" autocomplete="off">
+  <div class="tabs">
+    <button class="tab on" id="tabDay" onclick="setTab('day')">Сегодня</button>
+    <button class="tab" id="tabAll" onclick="setTab('all')">Все точки</button>
+  </div>
+</header>
+
+<div class="progress"><div class="pbar"><i id="pbar" style="width:0%"></i></div></div>
+<div class="meta" id="meta"></div>
+<div class="bar offline" id="offBar" style="display:none"><span>Нет связи — показан сохранённый маршрут</span></div>
+<div class="bar admin" id="adminBar" style="display:none">
+  <span id="adminHint">Тап — правка · ✓ — сегодня · ⋮ — действия</span>
+  <button style="color:var(--accent);font-weight:600" onclick="exitAdmin()">Выйти</button>
+</div>
+
+<main id="list"><div class="empty">Загружаю маршрут…</div></main>
+
+<div class="dock" id="dock">
+  <button class="btn" id="navBtn">
+    <svg width="24" height="16" viewBox="0 0 40 26" fill="none" aria-hidden="true">
+      <path d="M2 4.5A2.5 2.5 0 0 1 4.5 2h17A1.5 1.5 0 0 1 23 3.5V18H2V4.5Z" fill="currentColor"/>
+      <path d="M23 7h6.6c.7 0 1.3.3 1.7.9l4.9 6.4c.3.4.5.9.5 1.4V18H23V7Z" fill="currentColor"/>
+      <circle cx="10" cy="19.5" r="4.5" fill="currentColor"/><circle cx="10" cy="19.5" r="2" fill="var(--onsolid)"/>
+      <circle cx="29" cy="19.5" r="4.5" fill="currentColor"/><circle cx="29" cy="19.5" r="2" fill="var(--onsolid)"/>
+    </svg>
+    Поехали
+  </button>
+  <button class="btn ghost" id="shareBtn" title="Ссылка водителю">🔗</button>
+  <button class="btn ghost" id="menuBtn" style="display:none" title="Ещё">⋯</button>
+  <button class="btn ghost" id="addBtn" style="display:none" title="Добавить точку">＋</button>
+</div>
+
+<div class="selbar" id="selbar">
+  <span class="cnt" id="selCnt">Выбрано 0</span>
+  <button onclick="selPlan()">В план</button>
+  <button onclick="selMove()">Перенести</button>
+  <button class="warn" onclick="selDelete()">Удалить</button>
+  <button onclick="selClear()">✕</button>
+</div>
+
+<div class="sheet" id="sheet"><div class="card" id="card"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+window.onerror=function(m,src,l){
+  var el=document.getElementById('list');
+  if(el&&el.textContent.indexOf('Загружаю')>=0){
+    el.innerHTML='<div class="empty">Не удалось открыть страницу.<br><br>'+
+      '<button class="mini" onclick="location.reload()">Обновить</button>'+
+      '<div class="hint" style="margin-top:14px">Если не помогает — очистите данные сайта в браузере.</div></div>';
+  }
+};
+const ROUTES=[{id:'1',name:'1 Краснодар'},{id:'2',name:'2 Краснодар'},{id:'3',name:'3 Краснодар'},
+{id:'4',name:'4 Краснодар'},{id:'5',name:'5 Краснодар'},{id:'6',name:'6 Побережье'}];
+const REASONS=['Закрыто','Нет денег','Отказ','Не заказывали','Не доехал'];
+
+const Q=new URLSearchParams(location.search);
+let route=Q.get('m')||'1';
+let akey=Q.get('k')||(function(){try{return localStorage.getItem('kmz_k')||''}catch(e){return''}})();
+if(Q.get('k')){try{localStorage.setItem('kmz_k',Q.get('k'))}catch(e){}}
+let myRoutes=null;
+const kq=(sep)=>akey?sep+'k='+encodeURIComponent(akey):'';
+const hdr=()=>pass?{'x-pass':pass}:{};
+let list=[], plan=null, tpl=null, st={}, visits=null;
+let admin=false, query='', offline=false, tab='day', dirty=false;
+let sel=new Set(), allRoutes=null, lastDel=null, loading=true;
+
+const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let pass=(()=>{try{return sessionStorage.getItem('kmz_pass')||''}catch(e){return''}})();
+const setPass=v=>{pass=v;try{v?sessionStorage.setItem('kmz_pass',v):sessionStorage.removeItem('kmz_pass')}catch(e){}};
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const hhmm=iso=>{try{const d=new Date(iso);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}catch(e){return''}};
+const planIds=()=>(plan&&plan.date===today())?(plan.ids||[]):null;
+const rName=id=>(ROUTES.find(r=>r.id===id)||{}).name||id;
+const photoUrl=id=>staticMode?('data/photos/'+encodeURIComponent(id)+'.jpg'):('/api/photo?id='+encodeURIComponent(id));
+
+function toast(t,action){
+  const el=document.getElementById('toast');
+  el.innerHTML='<span>'+esc(t)+'</span>';
+  if(action){
+    const b=document.createElement('button');
+    b.textContent=action.label; b.onclick=()=>{el.classList.remove('show');action.fn()};
+    el.appendChild(b);
+  }
+  el.classList.add('show'); clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('show'),action?6000:2400);
+}
+
+function setTheme(t){document.documentElement.dataset.theme=t;LS.set('theme',t);
+  document.getElementById('themeBtn').textContent=t==='dark'?'☾':'☀';
+  document.querySelector('meta[name=theme-color]').content=t==='dark'?'#0E1216':'#FBFAF8'}
+setTheme(LS.get('theme')||'dark');
+document.getElementById('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+
+/* ---------- сервер ---------- */
+/* Если серверных функций нет (GitHub Pages) — читаем маршруты
+   из файлов data/route-N.json, лежащих рядом в репозитории. */
+let staticMode=false;
+async function loadStatic(m){
+  const r=await fetch('data/route-'+m+'.json?v='+Date.now(),{cache:'no-store'});
+  if(!r.ok) throw new Error('нет файла маршрута');
+  return await r.json();
+}
+
+function showCached(){
+  try{
+    const c=JSON.parse(LS.get('cache_'+route)||'null');
+    if(c&&c.stops&&c.stops.length){
+      list=c.stops; plan=c.day||null; tpl=c.tpl||null;
+      if(!planIds()) tab='all';
+      render(); return true;
+    }
+  }catch(e){}
+  return false;
+}
+async function loadRoute(){
+  loading=true;
+  const hadCache=showCached();
+  try{
+    const ctl=new AbortController(); const tmo=setTimeout(()=>ctl.abort(),9000);
+    const [r,s2]=await Promise.all([
+      fetch('/api/route?m='+route+kq('&'),{cache:'no-store',headers:hdr(),signal:ctl.signal}).then(x=>x.json()),
+      fetch('/api/status?m='+route+'&d='+today()+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json()).catch(()=>({st:{}}))
+    ]);
+    clearTimeout(tmo);
+    if(r.error){if(!hadCache) noAccess(r.error); else{offline=true;render()} return}
+    list=r.stops||[]; plan=r.day||null; tpl=r.tpl||null; st=s2.st||{}; offline=false; visits=null;
+    LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
+  }catch(e){
+    // сервера нет — пробуем файлы репозитория
+    try{
+      const d=await loadStatic(route);
+      if(d&&d.stops){
+        staticMode=true; offline=false;
+        list=d.stops; plan=d.day||null; tpl=d.tpl||null;
+        st=readLocalStatus();
+        if(!planIds()) tab='all';
+        loading=false;
+        LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
+        render(); return;
+      }
+    }catch(_){}
+    offline=true;
+    if(!hadCache){
+      try{const c=JSON.parse(LS.get('cache_'+route)||'{}');list=c.stops||[];plan=c.day||null;tpl=c.tpl||null}catch(_){list=[];plan=null}
+    }
+    loading=false;
+    if(!list.length){
+      document.getElementById('list').innerHTML='<div class="empty">Сервер не ответил.<br><br>Проверьте интернет и обновите страницу.<br><br><button class="mini" onclick="location.reload()">Обновить</button></div>';
+      document.getElementById('meta').textContent='';
+      return;
+    }
+  }
+  if(!planIds()) tab='all';
+  loading=false;
+  render();
+}
+async function push(){
+  if(staticMode) throw new Error('Правки недоступны: сайт работает из файлов, без сервера');
+  const r=await fetch('/api/route?m='+route,{method:'POST',
+    headers:{'content-type':'application/json','x-pass':pass},
+    body:JSON.stringify({stops:list,day:plan,tpl})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));dirty=true;render();throw new Error(e.error||'Не сохранилось')}
+  dirty=false; allRoutes=null;
+  LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
+}
+function readLocalStatus(){
+  try{return JSON.parse(LS.get('st_'+route+'_'+today())||'{}')}catch(e){return {}}
+}
+function saveLocalStatus(){
+  try{LS.set('st_'+route+'_'+today(),JSON.stringify(st))}catch(e){}
+}
+async function setStatus(id,done,reason,clear){
+  st[id]=clear?undefined:{d:done?1:0,at:new Date().toISOString(),r:reason||''};
+  if(clear) delete st[id];
+  render();
+  saveLocalStatus();
+  if(staticMode) return;
+  try{
+    await fetch('/api/status?m='+route+'&d='+today()+kq('&'),{method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({id,done,reason,clear})});
+  }catch(e){toast('Отметка не ушла — нет связи')}
+}
+async function loadAll(){
+  if(allRoutes) return allRoutes;
+  allRoutes={};
+  await Promise.all(ROUTES.map(async r=>{
+    try{const d=await fetch('/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json());allRoutes[r.id]=d.stops||[]}
+    catch(e){allRoutes[r.id]=[]}
+  }));
+  return allRoutes;
+}
+
+function noAccess(msg){
+  list=[];plan=null;st={};loading=false;
+  document.getElementById('list').innerHTML='<div class="empty">'+esc(msg)+
+    '<br><br>Ссылка устарела — попросите новую.<br><br>'+
+    '<button class="mini" onclick="forgetKey()">Забыть старую ссылку</button> '+
+    '<button class="mini" onclick="document.getElementById(\'adminBtn\').click()">Войти по паролю</button></div>';
+  document.getElementById('meta').textContent='';
+  document.getElementById('dock').style.display='none';
+}
+function forgetKey(){
+  akey=''; myRoutes=null;
+  try{localStorage.removeItem('kmz_k')}catch(e){}
+  document.getElementById('dock').style.display='flex';
+  fillPicker(); loadRoute();
+}
+
+/* ---------- шапка ---------- */
+const pick=document.getElementById('routePick');
+function fillPicker(){
+  const avail=myRoutes?ROUTES.filter(r=>myRoutes.indexOf(r.id)>=0):ROUTES;
+  const use=avail.length?avail:ROUTES;
+  pick.innerHTML=use.map(r=>'<option value="'+r.id+'">'+r.name+'</option>').join('');
+  if(use.map(r=>r.id).indexOf(route)<0) route=use[0].id;
+  pick.value=route;
+  if(use.length<2){pick.style.pointerEvents='none';pick.style.backgroundImage='none'}
+  else {pick.style.pointerEvents='';pick.style.backgroundImage=''}
+}
+async function initRoutes(){
+  if(akey||pass){
+    try{
+      const c=new AbortController(); const t=setTimeout(()=>c.abort(),6000);
+      const d=await fetch('/api/access'+kq('?'),{cache:'no-store',headers:hdr(),signal:c.signal}).then(x=>x.json());
+      clearTimeout(t);
+      if(Array.isArray(d.routes)&&d.routes.length&&d.routes.length<ROUTES.length) myRoutes=d.routes.slice().sort();
+    }catch(e){}
+  }
+  fillPicker();
+}
+pick.onchange=e=>{route=e.target.value;history.replaceState(null,'','?m='+route);selClear();
+  document.getElementById('list').innerHTML='<div class="empty">Загружаю маршрут…</div>';loadRoute()};
+let _sT=null;
+document.getElementById('search').oninput=e=>{
+  const v=e.target.value.trim().toLowerCase();
+  clearTimeout(_sT);
+  _sT=setTimeout(function(){
+    query=v; if(query) tab='all'; render();
+    if(query.length>1&&!myRoutes) loadAll().then(render);
+  },180);
+};
+function setTab(t){tab=t;render()}
+
+/* ---------- выборка ---------- */
+function ordered(){
+  const ids=planIds();
+  if(tab==='day') return ids?ids.map(id=>list.find(s=>s.id===id)).filter(Boolean):[];
+  return list.slice();
+}
+function visible(){
+  let base=ordered();
+  if(query) base=base.filter(s=>match(s,query));
+  return base.sort((a,b)=>(st[a.id]?1:0)-(st[b.id]?1:0));
+}
+const match=(s,q)=>((s.name||'')+' '+(s.addr||'')+' '+(s.note||'')+' '+(s.phone||'')).toLowerCase().includes(q);
+const canDrag=()=>admin&&!query&&!sel.size;
+
+/* ---------- отрисовка ---------- */
+function render(){
+  const ids=planIds(), vis=visible(), ord=ordered();
+  document.getElementById('tabDay').classList.toggle('on',tab==='day');
+  document.getElementById('tabAll').classList.toggle('on',tab==='all');
+  document.getElementById('tabDay').innerHTML='Сегодня'+(ids?` <span>${ids.length}</span>`:'');
+  document.getElementById('tabAll').innerHTML=`Все точки <span>${list.length}</span>`;
+
+  const inView=(tab==='day'&&ids)?ids.length:list.length;
+  const dn=ord.filter(s=>st[s.id]&&st[s.id].d).length;
+  const fl=ord.filter(s=>st[s.id]&&!st[s.id].d).length;
+  document.getElementById('pbar').style.width=inView?Math.round((dn+fl)/inView*100)+'%':'0%';
+  const noCoord=list.filter(s=>!s.lat).length;
+  document.getElementById('meta').innerHTML=`Сдано <b>${dn}</b> из <b>${inView}</b>`+
+    (fl?` · <span style="color:var(--warn)">не сдано ${fl}</span>`:'')+
+    (admin&&noCoord?` · <span style="color:var(--warn)">без координат ${noCoord}</span>`:'');
+
+  const ob=document.getElementById('offBar');
+  ob.style.display=(offline||dirty)?'flex':'none';
+  ob.firstElementChild.textContent=dirty?'Правка не ушла на сервер — проверьте связь':(staticMode?'Режим просмотра: данные из файлов':'Нет связи — показан сохранённый маршрут');
+  if(staticMode) ob.style.display='flex';
+  document.getElementById('adminHint').textContent=(tab==='day'&&ids)?'⠿ — порядок объезда на сегодня':'Тап — правка · ✓ — сегодня · ⋮ — действия';
+
+  let html=vis.length?vis.map(s=>row(s,ord.indexOf(s)+1)).join(''):
+    `<div class="empty">${(loading&&!list.length)?'Загружаю маршрут…':(query?'В этом маршруте не найдено':(tab==='day'?(ids?'На сегодня точек не отмечено':'План на сегодня не задан.<br>Все точки — на соседней вкладке.'):'В маршруте пока нет точек'))}</div>`;
+
+  if(query&&query.length>1&&allRoutes&&!myRoutes){
+    const other=[];
+    ROUTES.filter(r=>r.id!==route).forEach(r=>{
+      (allRoutes[r.id]||[]).filter(s=>match(s,query)).forEach(s=>other.push({s,r}));
+    });
+    if(other.length) html+=`<div class="gsec">В других маршрутах · ${other.length}</div>`+
+      other.map(({s,r})=>`<div class="stop" onclick="jumpTo('${r.id}','${s.id}')">
+        <div class="num">${r.id}</div>
+        <div class="sbody"><div class="sname">${esc(s.name)}</div>
+          <div class="saddr">${esc(s.addr||rName(r.id))}</div></div>
+        ${s.photo?`<img class="thumb" width="48" height="48" src="${photoUrl(s.photo)}" loading="lazy" decoding="async" onerror="this.style.display='none'" alt="">`:''}
+      </div>`).join('');
+  }
+  document.getElementById('list').innerHTML=html;
+
+  document.getElementById('addBtn').style.display=admin?'block':'none';
+  document.getElementById('menuBtn').style.display=admin?'block':'none';
+  document.getElementById('adminBar').style.display=admin?'flex':'none';
+  document.getElementById('adminBtn').classList.toggle('on',admin);
+  document.getElementById('selbar').classList.toggle('on',sel.size>0);
+  document.getElementById('dock').style.display=sel.size?'none':'flex';
+  document.getElementById('selCnt').textContent='Выбрано '+sel.size;
+  if(canDrag()) bindDrag();
+  bindLongPress();
+}
+
+function row(s,i){
+  const ids=planIds(), stt=st[s.id], inPlan=ids&&ids.includes(s.id), isSel=sel.has(s.id);
+  const cls=(stt?(stt.d?'done':'fail'):'')+(isSel?' sel':'');
+  return `<div class="stop ${cls}" data-id="${s.id}">
+    ${sel.size?`<div class="tick ${isSel?'on':''}" onclick="toggleSel('${s.id}')">${isSel?'✓':''}</div>`
+      :(admin?`<div class="tick ${inPlan?'on':''}" onclick="togglePlan('${s.id}')">${inPlan?'✓':''}</div>`
+      :`<div class="num">${stt?(stt.d?'✓':'✕'):i}</div>`)}
+    <div class="sbody" onclick="openCard('${s.id}')" data-long="${s.id}">
+      <div class="sname">${esc(s.name)}</div>
+      ${s.addr?`<div class="saddr">${esc(s.addr)}</div>`:''}
+      <div class="marks">
+        ${stt&&stt.d?`<span class="ok">сдано ${hhmm(stt.at)}</span>`:''}
+        ${stt&&!stt.d?`<span class="warn">${esc(stt.r||'не сдано')}</span>`:''}
+        ${s.note?'<span>заметка</span>':''}
+        ${admin&&!s.lat?'<span class="warn">нет координат</span>':''}${admin&&s.cs==='geo'?'<span class="warn">коорд. примерные</span>':''}
+      </div>
+    </div>
+    ${s.photo?`<img class="thumb" width="48" height="48" src="${photoUrl(s.photo)}" loading="lazy" decoding="async" onerror="this.style.display='none'" alt="" onclick="openCard('${s.id}')">`:''}
+    ${admin&&!sel.size?`<div class="kebab" onclick="rowMenu('${s.id}')">⋮</div>`:''}
+    ${canDrag()?`<div class="grip" data-grip="${s.id}">⠿</div>`:''}
+  </div>`;
+}
+
+async function jumpTo(r,id){
+  route=r; pick.value=r; history.replaceState(null,'','?m='+r);
+  document.getElementById('search').value=''; query=''; tab='all';
+  await loadRoute(); openCard(id);
+}
+
+/* ---------- выделение нескольких ---------- */
+function toggleSel(id){sel.has(id)?sel.delete(id):sel.add(id);render()}
+function selClear(){sel.clear();render()}
+async function selPlan(){
+  if(!plan||plan.date!==today()) plan={date:today(),ids:[]};
+  sel.forEach(id=>{if(!plan.ids.includes(id)) plan.ids.push(id)});
+  const n=sel.size; selClear();
+  try{await push();toast('В план добавлено: '+n)}catch(e){toast(e.message)}
+}
+async function selDelete(){
+  if(!confirm('Удалить выбранных точек: '+sel.size+'?')) return;
+  const back=list.slice(), backPlan=plan?JSON.parse(JSON.stringify(plan)):null;
+  list=list.filter(s=>!sel.has(s.id));
+  if(plan&&plan.ids) plan.ids=plan.ids.filter(id=>!sel.has(id));
+  const n=sel.size; selClear();
+  try{await push();toast('Удалено: '+n,{label:'Вернуть',fn:async()=>{list=back;plan=backPlan;try{await push();render();toast('Возвращено')}catch(e){toast(e.message)}}})}
+  catch(e){list=back;plan=backPlan;render();toast(e.message)}
+}
+function moveOne(id){sel.clear();sel.add(id);selMove()}
+function selMove(){
+  const ids=[...sel];
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>Перенести ${ids.length} точек</h2>
+    <div class="field" style="margin-top:18px"><label>В какой маршрут</label>
+      <select id="f_to">${ROUTES.filter(r=>r.id!==route).map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</select></div>
+    <div class="row"><button class="btn flat" onclick="doBulkMove('copy')">Скопировать</button>
+      <button class="btn accent" onclick="doBulkMove('move')">Перенести</button></div>`;
+  document.getElementById('sheet').classList.add('open');
+}
+async function doBulkMove(mode){
+  const to=document.getElementById('f_to').value, ids=[...sel];
+  try{
+    const d=await fetch('/api/route?m='+to+kq('&'),{cache:'no-store',headers:hdr()}).then(r=>r.json());
+    const arr=d.stops||[];
+    ids.forEach((id,i)=>{const s=list.find(x=>x.id===id);if(s) arr.push({...s,id:'c'+Date.now().toString(36)+i})});
+    const w=await fetch('/api/route?m='+to,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+      body:JSON.stringify({stops:arr,day:d.day||null,tpl:d.tpl||null})});
+    if(!w.ok) throw new Error('Не записалось');
+    if(mode==='move'){
+      list=list.filter(s=>!sel.has(s.id));
+      if(plan&&plan.ids) plan.ids=plan.ids.filter(id=>!sel.has(id));
+      await push();
+    }
+    const n=ids.length; selClear(); closeSheet();
+    toast((mode==='move'?'Перенесено: ':'Скопировано: ')+n+' → '+rName(to));
+  }catch(e){toast(e.message)}
+}
+
+/* ---------- меню строки ---------- */
+function rowMenu(id){
+  const s=list.find(x=>x.id===id); if(!s) return;
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>${esc(s.name)}</h2>
+    <div style="margin-top:16px">
+      <div class="menu-item" onclick="closeSheet();openEdit('${id}')"><span class="ic">✎</span>Изменить</div>
+      <div class="menu-item" onclick="quickName('${id}')"><span class="ic">Aa</span>Переименовать</div>
+      <div class="menu-item" onclick="quickPhone('${id}')"><span class="ic">📞</span>Вписать телефон</div>
+      <div class="menu-item" onclick="dupStop('${id}')"><span class="ic">⧉</span>Дублировать</div>
+      <div class="menu-item" onclick="moveOne('${id}')"><span class="ic">→</span>В другой маршрут</div>
+      <div class="menu-item" onclick="closeSheet();history_('${id}')"><span class="ic">🕘</span>История посещений</div>
+      <div class="menu-item warn" onclick="delStop('${id}')"><span class="ic">🗑</span>Удалить точку</div>
+    </div>`;
+  document.getElementById('sheet').classList.add('open');
+}
+function quickName(id){
+  const s=list.find(x=>x.id===id);
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>Название</h2><div class="field" style="margin-top:18px">
+    <input id="q_val" value="${esc(s.name)}"></div>
+    <div class="row"><button class="btn accent" onclick="saveQuick('${id}','name')">Сохранить</button></div>`;
+  setTimeout(()=>document.getElementById('q_val').focus(),120);
+}
+function quickPhone(id){
+  const s=list.find(x=>x.id===id);
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>Телефон точки</h2><div class="field" style="margin-top:18px">
+    <input id="q_val" inputmode="tel" placeholder="+7…" value="${esc(s.phone)}"></div>
+    <div class="row"><button class="btn accent" onclick="saveQuick('${id}','phone')">Сохранить</button></div>`;
+  setTimeout(()=>document.getElementById('q_val').focus(),120);
+}
+async function saveQuick(id,field){
+  const s=list.find(x=>x.id===id); if(!s) return;
+  s[field]=document.getElementById('q_val').value.trim();
+  render(); closeSheet();
+  try{await push();toast('Сохранено')}catch(e){toast(e.message)}
+}
+async function dupStop(id){
+  const s=list.find(x=>x.id===id); if(!s) return;
+  const copy={...s,id:'d'+Date.now().toString(36),name:s.name+' (копия)',photo:s.photo};
+  list.splice(list.indexOf(s)+1,0,copy);
+  render(); closeSheet();
+  try{await push();toast('Дубль создан')}catch(e){toast(e.message)}
+}
+async function history_(id){
+  const s=list.find(x=>x.id===id);
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>${esc(s.name)}</h2><div class="steps">Загружаю историю…</div>`;
+  document.getElementById('sheet').classList.add('open');
+  if(!visits){try{visits=(await fetch('/api/visits?m='+route).then(r=>r.json())).v||{}}catch(e){visits={}}}
+  const v=(visits[id]||[]).slice().reverse();
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>${esc(s.name)}</h2>
+    <div class="steps">${v.length?v.map(x=>`<b>${x.day}</b> — ${x.ok?'сдано':'не сдано'+(x.r?': '+esc(x.r):'')}`).join('<br>'):'Посещений пока не отмечено.'}</div>`;
+}
+
+/* ---------- карточка ---------- */
+function openCard(id){
+  const el=document.querySelector('[data-long="'+id+'"]');
+  if(el&&el._skip){el._skip=false;return}
+  const s=list.find(x=>x.id===id); if(!s) return;
+  if(sel.size){toggleSel(id);return}
+  if(admin){openEdit(id);return}
+  const stt=st[id];
+  document.getElementById('card').innerHTML=`
+    <button class="close" onclick="closeSheet()">✕</button>
+    <h2>${esc(s.name)}</h2>
+    ${s.addr?`<div class="line"><span class="k">Адрес</span><span>${esc(s.addr)}</span></div>`:''}
+    ${s.hours?`<div class="line"><span class="k">Работает</span><span>${esc(s.hours)}</span></div>`:''}
+    ${s.phone?`<div class="line"><span class="k">Телефон</span><span>${esc(s.phone)}</span></div>`:''}
+    ${stt?`<div class="line"><span class="k">Отмечено</span><span>${stt.d?'сдано':'не сдано'+(stt.r?' · '+esc(stt.r):'')} в ${hhmm(stt.at)}</span></div>`:''}
+    ${s.note?`<div class="note-box">${esc(s.note)}</div>`:''}
+    ${s.photo?`<img class="photo" src="${photoUrl(s.photo)}" alt="">`:''}
+    <div class="row">
+      ${(s.url||s.lat)?`<a class="btn" target="_blank" rel="noopener" href="${s.url?esc(s.url):`https://yandex.ru/maps/?rtext=~${s.lat},${s.lon}&rtt=auto`}">Поехали</a>`:''}
+      ${s.phone?`<a class="btn flat" href="tel:${esc(s.phone).replace(/[^\d+]/g,'')}">Позвонить 📞</a>`:(s.url2?`<a class="btn flat" target="_blank" rel="noopener" href="${esc(s.url2)}">2ГИС</a>`:'')}
+    </div>
+    ${stt?`<div class="row"><button class="btn flat" onclick="setStatus('${id}',0,'',true);closeSheet()">Снять отметку</button></div>`
+    :`<div class="row"><button class="btn good" onclick="setStatus('${id}',1);closeSheet()">Доставлено ✓</button></div>
+      <div class="row"><button class="btn danger" onclick="failCard('${id}')">Не сдал</button></div>`}`;
+  document.getElementById('sheet').classList.add('open');
+}
+function failCard(id){
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>Почему не сдал?</h2><div style="margin-top:16px">
+    ${REASONS.map(r=>`<div class="menu-item" onclick="setStatus('${id}',0,'${r}');closeSheet()"><span class="ic">•</span>${r}</div>`).join('')}
+    </div>`;
+}
+const closeSheet=()=>document.getElementById('sheet').classList.remove('open');
+document.getElementById('sheet').onclick=e=>{if(e.target.id==='sheet'){closeSheet();if(sel.size===1){sel.clear();render()}}};
+
+async function togglePlan(id){
+  if(!plan||plan.date!==today()) plan={date:today(),ids:[]};
+  const i=plan.ids.indexOf(id); i<0?plan.ids.push(id):plan.ids.splice(i,1);
+  render();
+  try{await push()}catch(e){toast(e.message)}
+}
+
+function bindLongPress(){
+  const els=document.querySelectorAll('[data-long]');
+  for(let i=0;i<els.length;i++){
+    (function(el){
+      let timer=null, moved=false, x0=0, y0=0;
+      const start=function(ev){
+        const t=(ev.touches&&ev.touches[0])||ev;
+        x0=t.clientX; y0=t.clientY; moved=false;
+        clearTimeout(timer);
+        timer=setTimeout(function(){ if(!moved){ el._skip=true; toggleSel(el.getAttribute('data-long')); } },550);
+      };
+      const move=function(ev){
+        const t=(ev.touches&&ev.touches[0])||ev;
+        if(Math.abs(t.clientX-x0)>10||Math.abs(t.clientY-y0)>10){moved=true;clearTimeout(timer)}
+      };
+      const end=function(){clearTimeout(timer)};
+      el.addEventListener('touchstart',start,{passive:true});
+      el.addEventListener('touchmove',move,{passive:true});
+      el.addEventListener('touchend',end);
+      el.addEventListener('touchcancel',end);
+      el.addEventListener('mousedown',start);
+      el.addEventListener('mousemove',move);
+      el.addEventListener('mouseup',end);
+      el.addEventListener('mouseleave',end);
+    })(els[i]);
+  }
+}
+
+/* ---------- перетаскивание ---------- */
+function bindDrag(){
+  const hasPointer=('onpointerdown' in window);
+  const P=t=>(t&&t.touches&&t.touches[0])?t.touches[0]:t;
+  document.querySelectorAll('.grip').forEach(g=>{
+    const begin=e0=>{
+      if(e0.preventDefault&&e0.cancelable) e0.preventDefault();
+      const e=P(e0);
+      const items=[...document.querySelectorAll('.stop')];
+      const el=g.closest('.stop'), from=items.indexOf(el);
+      const h=el.getBoundingClientRect().height+8;
+      const startY=e.clientY; let to=from;
+      el.classList.add('drag');
+      if(hasPointer&&e0.pointerId!==undefined){try{g.setPointerCapture(e0.pointerId)}catch(err){}}
+      const move=ev0=>{
+        if(ev0.cancelable&&ev0.preventDefault) ev0.preventDefault();
+        const ev=P(ev0);
+        if(ev.clientY>innerHeight-110) scrollBy(0,12);
+        else if(ev.clientY<130) scrollBy(0,-12);
+        const dy=ev.clientY-startY;
+        el.style.transform=`translateY(${dy}px) scale(1.02)`;
+        const nt=Math.max(0,Math.min(items.length-1,from+Math.round(dy/h)));
+        if(nt!==to){
+          to=nt;
+          items.forEach((it,i)=>{
+            if(it===el) return;
+            it.classList.add('shift');
+            let sh=0;
+            if(from<to&&i>from&&i<=to) sh=-h;
+            if(from>to&&i>=to&&i<from) sh=h;
+            it.style.transform=`translateY(${sh}px)`;
+          });
+        }
+      };
+      const up=async()=>{
+        document.removeEventListener('pointermove',move);
+        document.removeEventListener('pointerup',up);
+        document.removeEventListener('touchmove',move);
+        document.removeEventListener('touchend',up);
+        items.forEach(it=>{it.style.transform='';it.classList.remove('shift','drag')});
+        if(to!==from) await applyOrder(from,to); else render();
+      };
+      if(hasPointer){
+        document.addEventListener('pointermove',move);
+        document.addEventListener('pointerup',up);
+      }else{
+        document.addEventListener('touchmove',move,{passive:false});
+        document.addEventListener('touchend',up);
+      }
+    };
+    if(hasPointer) g.onpointerdown=begin; else g.ontouchstart=begin;
+  });
+}
+async function applyOrder(from,to){
+  const vis=visible().map(s=>s.id);
+  if(tab==='day'&&planIds()){
+    const arr=plan.ids.slice();
+    const a=arr.indexOf(vis[from]), b=arr.indexOf(vis[to]);
+    arr.splice(b,0,arr.splice(a,1)[0]); plan.ids=arr;
+  }else{
+    const a=list.findIndex(s=>s.id===vis[from]), b=list.findIndex(s=>s.id===vis[to]);
+    list.splice(b,0,list.splice(a,1)[0]);
+  }
+  render();
+  try{await push();toast('Порядок сохранён')}catch(e){toast(e.message)}
+}
+
+/* ---------- редактирование ---------- */
+function openEdit(id){
+  const s=id?list.find(x=>x.id===id):{id:'',name:'',addr:'',url:'',url2:'',phone:'',hours:'',note:'',photo:'',lat:null};
+  if(!s) return;
+  document.getElementById('card').innerHTML=editForm(s);
+  document.getElementById('sheet').classList.add('open');
+}
+function editForm(s){
+  const i=list.indexOf(s);
+  return `<button class="close" onclick="closeSheet()">✕</button>
+  <h2 style="margin-bottom:18px">${s.id?'Точка':'Новая точка'}</h2>
+  <div class="field"><label>Название</label><input id="f_name" value="${esc(s.name)}"></div>
+  <div class="field"><label>Адрес</label><input id="f_addr" value="${esc(s.addr)}"></div>
+  <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(s.phone)}" inputmode="tel"></div>
+  <div class="field"><label>Режим работы</label><input id="f_hours" value="${esc(s.hours)}" placeholder="8:00–20:00"></div>
+  <div class="field"><label>Заметка водителю</label><textarea id="f_note">${esc(s.note)}</textarea></div>
+  <div class="field"><label>Ссылка на Яндекс.Карты</label><input id="f_url" value="${esc(s.url)}"></div>
+  <div class="field"><label>Ссылка на 2ГИС</label><input id="f_url2" value="${esc(s.url2||'')}"></div>
+  <div class="field"><label>Координаты</label>
+    <input id="f_coord" value="${s.lat?s.lat+', '+s.lon:''}" placeholder="45.035, 38.975">
+    <button class="mini" onclick="grabGPS()">📍 Взять с GPS — я на точке</button></div>
+  <div class="field"><label>Фото точки</label><input type="file" id="f_photo" accept="image/*"></div>
+  ${s.photo?`<img class="photo" src="${photoUrl(s.photo)}">`:''}
+  ${s.id?`<div class="field" style="margin-top:16px"><label>Место в списке</label>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="ord"><button onclick="move('${s.id}',-1)">↑</button><button onclick="move('${s.id}',1)">↓</button></div>
+      <span style="color:var(--muted);font-size:14px">${i+1} из ${list.length}</span>
+    </div></div>`:''}
+  <div class="row"><button class="btn accent" onclick="saveStop('${s.id}')">Сохранить</button></div>
+  ${s.id?`<div class="row"><button class="btn danger" onclick="delStop('${s.id}')">Удалить точку</button></div>`:''}`;
+}
+function grabGPS(){
+  if(!navigator||!navigator.geolocation){toast('Телефон не отдаёт геопозицию');return}
+  toast('Определяю…');
+  navigator.geolocation.getCurrentPosition(
+    p=>{document.getElementById('f_coord').value=p.coords.latitude.toFixed(6)+', '+p.coords.longitude.toFixed(6);
+      const a=Math.round(p.coords.accuracy||0);
+      toast(a>60?`Записано, но точность ±${a} м — лучше повторить у входа`:'Координаты записаны · ±'+a+' м')},
+    ()=>toast('Не вышло — разрешите доступ к геопозиции'),{enableHighAccuracy:true,timeout:10000});
+}
+function parseCoord(v){
+  v=(v||'').trim(); if(!v) return null;
+  let m=v.match(/(?:ll|pt)=(-?\d+\.\d+)(?:,|%2C)(-?\d+\.\d+)/);
+  if(m) return [parseFloat(m[2]),parseFloat(m[1])];
+  m=v.match(/(-?\d+\.\d+)\s*[, ]\s*(-?\d+\.\d+)/);
+  if(m) return [parseFloat(m[1]),parseFloat(m[2])];
+  return null;
+}
+async function saveStop(id){
+  let s=id?list.find(x=>x.id===id):null, isNew=!s;
+  if(isNew) s={id:'p'+Date.now().toString(36)};
+  const name=document.getElementById('f_name').value.trim();
+  if(!name){toast('Впишите название');return}
+  s.name=name;
+  s.addr=document.getElementById('f_addr').value.trim();
+  s.url=document.getElementById('f_url').value.trim();
+  s.url2=document.getElementById('f_url2').value.trim();
+  s.phone=document.getElementById('f_phone').value.trim();
+  s.hours=document.getElementById('f_hours').value.trim();
+  s.note=document.getElementById('f_note').value.trim();
+  const c=parseCoord(document.getElementById('f_coord').value);
+  s.lat=c?c[0]:null; s.lon=c?c[1]:null; if(c) s.cs='manual';
+  const file=document.getElementById('f_photo').files[0];
+  try{
+    if(file){toast('Загружаю фото…');const old=s.photo;s.photo=await uploadPhoto(file);
+      if(old) fetch('/api/photo?id='+encodeURIComponent(old),{method:'DELETE',headers:{'x-pass':pass}}).catch(()=>{})}
+    if(isNew) list.push(s);
+    await push(); render(); closeSheet(); toast('Сохранено');
+  }catch(e){toast(e.message)}
+}
+function uploadPhoto(file){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>{
+      const img=new Image();
+      img.onload=async()=>{
+        const k=Math.min(1,1000/Math.max(img.width,img.height));
+        const c=document.createElement('canvas');
+        c.width=img.width*k;c.height=img.height*k;
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        try{
+          const r=await fetch('/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+            body:JSON.stringify({data:c.toDataURL('image/jpeg',.72)})});
+          const d=await r.json(); d.id?res(d.id):rej(new Error(d.error||'Фото не загрузилось'));
+        }catch(e){rej(new Error('Фото не загрузилось — проверьте связь'))}
+      };
+      img.onerror=()=>rej(new Error('Не читается файл'));
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+async function delStop(id){
+  const s=list.find(x=>x.id===id); if(!s) return;
+  const idx=list.indexOf(s), backPlan=plan?JSON.parse(JSON.stringify(plan)):null;
+  list.splice(idx,1);
+  if(plan&&plan.ids) plan.ids=plan.ids.filter(x=>x!==id);
+  render(); closeSheet();
+  try{
+    await push();
+    toast('Удалено: '+s.name,{label:'Вернуть',fn:async()=>{
+      list.splice(idx,0,s); plan=backPlan;
+      try{await push();render();toast('Точка возвращена')}catch(e){toast(e.message)}
+    }});
+  }catch(e){list.splice(idx,0,s);plan=backPlan;render();toast(e.message)}
+}
+async function move(id,d){
+  const i=list.findIndex(x=>x.id===id); if(i<0) return;
+  const j=i+d; if(j<0||j>=list.length) return;
+  [list[i],list[j]]=[list[j],list[i]];
+  try{await push();render();closeSheet();toast('Порядок изменён')}catch(e){toast(e.message)}
+}
+document.getElementById('addBtn').onclick=()=>openEdit('');
+
+/* ---------- меню админа ---------- */
+document.getElementById('menuBtn').onclick=()=>{
+  const ids=planIds();
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+  <h2>Управление</h2>
+  <div style="margin-top:16px">
+    <div class="menu-item" onclick="planForm()"><span class="ic">📅</span>План на день и шаблоны${ids?' · '+ids.length:''}</div>
+    <div class="menu-item" onclick="phonesForm()"><span class="ic">📞</span>Заполнить телефоны</div>
+    <div class="menu-item" onclick="autoCoords()"><span class="ic">📍</span>Найти координаты (${list.filter(s=>!s.lat).length})</div>
+    <div class="menu-item" onclick="dupCheck()"><span class="ic">⧉</span>Поиск дублей по всем маршрутам</div>
+    <div class="menu-item" onclick="sortAz()"><span class="ic">Az</span>Отсортировать по алфавиту</div>
+    <div class="menu-item" onclick="bulkForm()"><span class="ic">＋</span>Загрузить список точек</div>
+    <div class="menu-item" onclick="backupAll()"><span class="ic">💾</span>Копия всех маршрутов</div>
+    <div class="menu-item" onclick="exportForGithub()"><span class="ic">⤓</span>Выгрузить файлы для GitHub</div>
+    <div class="menu-item" onclick="restoreForm()"><span class="ic">↺</span>Восстановить из копии</div>
+    <div class="menu-item" onclick="location.href='import.html'"><span class="ic">⇪</span>Импорт из Google Keep</div>
+  </div>`;
+  document.getElementById('sheet').classList.add('open');
+};
+
+function planForm(){
+  const ids=planIds()||[];
+  const days=['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+  <h2>План на день</h2>
+  <div class="steps">Сейчас в плане на сегодня: <b>${ids.length}</b> точек</div>
+  <div class="row"><button class="btn flat" onclick="planAll()">Отметить все</button>
+    <button class="btn flat" onclick="planClear()">Снять план</button></div>
+  <div class="field" style="margin-top:22px"><label>Список клиентов на сегодня</label>
+    <textarea id="planlist" style="min-height:150px" placeholder="Курпитко Атарбекова&#10;Молов Минская&#10;Титаренко"></textarea>
+    <div class="hint">Вставьте фамилии из таблицы, по одной в строке. Отмечу их в плане и выстрою порядок объезда от ближней к дальней.</div>
+    <div class="row"><button class="btn accent" onclick="planFromList()">Составить маршрут на день</button></div></div>
+  <div class="field" style="margin-top:22px"><label>Сохранить нынешний план как шаблон</label>
+    <select id="f_tpl">${days.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
+    <div class="row"><button class="btn flat" onclick="tplSave()">Сохранить</button>
+      <button class="btn flat" onclick="tplApply()">Применить</button></div>
+    <div class="hint">${tpl?('Готовые шаблоны: '+Object.keys(tpl).join(', ')):'Шаблонов пока нет.'}</div></div>`;
+}
+async function planAll(){plan={date:today(),ids:ordered().map(s=>s.id)};tab='day';render();closeSheet();
+  try{await push();toast('Отмечены все точки')}catch(e){toast(e.message)}}
+async function planClear(){plan=null;tab='all';render();closeSheet();
+  try{await push();toast('План снят')}catch(e){toast(e.message)}}
+async function tplSave(){
+  const d=document.getElementById('f_tpl').value;
+  const ids=planIds();
+  if(!ids||!ids.length){toast('Сначала отметьте точки на сегодня');return}
+  tpl=tpl||{}; tpl[d]=ids.slice();
+  closeSheet();
+  try{await push();toast('Шаблон «'+d+'» сохранён')}catch(e){toast(e.message)}
+}
+async function tplApply(){
+  const d=document.getElementById('f_tpl').value;
+  if(!tpl||!tpl[d]){toast('Шаблона «'+d+'» ещё нет');return}
+  plan={date:today(),ids:tpl[d].filter(id=>list.some(s=>s.id===id))};
+  tab='day'; render(); closeSheet();
+  try{await push();toast('План на сегодня: '+plan.ids.length+' точек')}catch(e){toast(e.message)}
+}
+
+const norm=x=>(x||'').toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9 ]/gi,' ').replace(/\s+/g,' ').trim();
+function findStop(q){
+  const n=norm(q); if(!n) return {};
+  const exact=list.find(s=>norm(s.name)===n);
+  if(exact) return {stop:exact};
+  const starts=list.filter(s=>norm(s.name).startsWith(n));
+  if(starts.length===1) return {stop:starts[0]};
+  if(starts.length>1) return {amb:starts.map(s=>s.name)};
+  const inc=list.filter(s=>norm(s.name).includes(n)||n.includes(norm(s.name)));
+  if(inc.length===1) return {stop:inc[0]};
+  if(inc.length>1) return {amb:inc.map(s=>s.name)};
+  const w=n.split(' ')[0];
+  const cand=list.filter(s=>norm(s.name).split(' ')[0]===w);
+  if(cand.length===1) return {stop:cand[0]};
+  if(cand.length>1) return {amb:cand.map(s=>s.name)};
+  return {};
+}
+async function planFromList(){
+  const rows=document.getElementById('planlist').value.split('\n').map(r=>r.trim()).filter(Boolean);
+  if(!rows.length){toast('Список пуст');return}
+  const found=[], miss=[], amb=[], seen=new Set();
+  rows.forEach(r=>{
+    const res=findStop(r);
+    if(res.stop){if(!seen.has(res.stop.id)){found.push(res.stop);seen.add(res.stop.id)}}
+    else if(res.amb) amb.push({q:r,list:res.amb});
+    else miss.push(r);
+  });
+  if(!found.length&&!amb.length){toast('Ни одна строка не совпала');return}
+  const withC=found.filter(s=>s.lat), without=found.filter(s=>!s.lat);
+  const order=withC.length>1?optimize(withC,null):withC;
+  plan={date:today(),ids:order.concat(without).map(s=>s.id)};
+  tab='day'; render();
+  try{await push()}catch(e){toast(e.message)}
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>План на сегодня</h2>
+    <div class="steps">В маршруте: <b>${found.length}</b> точек${withC.length>1?` · порядок выстроен, ${Math.round(totalKm(order))} км`:''}${without.length?`<br>Без координат, ушли в конец: ${without.length}`:''}${miss.length?`<br><br><span style="color:var(--warn)">Не нашлись:</span><br>${miss.map(esc).join('<br>')}`:''}
+    ${amb.length?`<br><br><span style="color:var(--warn)">Совпало несколько — уточните адрес:</span><br>${amb.map(a=>esc(a.q)+' → '+a.list.map(esc).join(' / ')).join('<br>')}`:''}</div>
+    <div class="hint">Неоднозначные не добавлены — отметьте их галочкой вручную. Порядок правится ручкой ⠿ на вкладке «Сегодня».</div>`;
+}
+
+function phonesForm(){
+  const need=list.filter(s=>!s.phone);
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+  <h2>Телефоны</h2>
+  <div class="steps">Без телефона: <b>${need.length}</b> из ${list.length}</div>
+  <div id="phlist">${need.slice(0,60).map(s=>`<div class="phrow">
+    <span>${esc(s.name)}</span><input data-ph="${s.id}" inputmode="tel" placeholder="+7…"></div>`).join('')}</div>
+  ${need.length>60?`<div class="hint">Показаны первые 60, остальные — после сохранения.</div>`:''}
+  <div class="row"><button class="btn accent" onclick="phonesSave()">Сохранить</button></div>`;
+}
+async function phonesSave(){
+  let n=0;
+  document.querySelectorAll('[data-ph]').forEach(i=>{
+    const v=i.value.trim(); if(!v) return;
+    const s=list.find(x=>x.id===i.dataset.ph); if(s){s.phone=v;n++}
+  });
+  if(!n){toast('Ничего не вписано');return}
+  render(); closeSheet();
+  try{await push();toast('Телефонов записано: '+n)}catch(e){toast(e.message)}
+}
+
+async function dupCheck(){
+  document.getElementById('card').innerHTML=`<h2>Ищу дубли…</h2>`;
+  const all=await loadAll();
+  const seen={}, dups=[];
+  ROUTES.forEach(r=>(all[r.id]||[]).forEach(s=>{
+    const k=(s.name||'').toLowerCase().replace(/\s+/g,' ').trim();
+    if(!k) return;
+    if(seen[k]) {seen[k].push(r.id); } else seen[k]=[r.id];
+  }));
+  Object.entries(seen).forEach(([k,rs])=>{if(rs.length>1) dups.push({k,rs})});
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>Дубли · ${dups.length}</h2>
+    <div class="steps">${dups.length?dups.map(d=>`<b>${esc(d.k)}</b> — маршруты ${d.rs.join(', ')}`).join('<br>'):'Повторов не нашлось.'}</div>
+    <div class="hint">Одинаковое имя в разных маршрутах — это нормально, если точка обслуживается в разные дни.</div>`;
+}
+
+function bulkForm(){
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+  <h2>Загрузить список</h2>
+  <div class="field" style="margin-top:16px"><label>название | адрес | ссылка | телефон | заметка</label>
+    <textarea id="bulk" style="min-height:180px"></textarea>
+    <div class="hint">По точке в строке. Хватит одного названия. Строки встанут в конец маршрута.</div></div>
+  <div class="row"><button class="btn accent" onclick="bulkAdd()">Добавить</button></div>`;
+}
+async function bulkAdd(){
+  const rows=document.getElementById('bulk').value.split('\n').map(r=>r.trim()).filter(Boolean);
+  if(!rows.length){toast('Пусто');return}
+  const have=list.map(s=>(s.name||'').toLowerCase());
+  const dup=rows.map(r=>r.split('|')[0].trim()).filter(n=>have.includes(n.toLowerCase()));
+  if(dup.length&&!confirm('Уже есть:\n'+dup.join('\n')+'\n\nВсё равно добавить?')) return;
+  rows.forEach((r,n)=>{
+    const p=r.split('|').map(x=>x.trim());
+    const c=parseCoord(p[2]);
+    list.push({id:'b'+Date.now().toString(36)+n,name:p[0]||'',addr:p[1]||'',url:p[2]||'',url2:'',
+      phone:p[3]||'',hours:'',note:p[4]||'',photo:'',lat:c?c[0]:null,lon:c?c[1]:null});
+  });
+  render(); closeSheet();
+  try{await push();toast('Добавлено: '+rows.length)}catch(e){toast(e.message)}
+}
+async function sortAz(){
+  if(!confirm('Переставить точки по алфавиту?')) return;
+  list.sort((a,b)=>(a.name||'').localeCompare(b.name||'','ru'));
+  render(); closeSheet();
+  try{await push();toast('Отсортировано')}catch(e){toast(e.message)}
+}
+async function exportForGithub(){
+  toast('Собираю файлы…');
+  const zipNote=[];
+  for(const r of ROUTES){
+    try{
+      const d=await fetch('/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json());
+      const blob=new Blob([JSON.stringify({stops:d.stops||[],day:d.day||null,tpl:d.tpl||null},null,1)],{type:'application/json'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download='route-'+r.id+'.json'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+      zipNote.push(r.name+': '+((d.stops||[]).length));
+      await new Promise(z=>setTimeout(z,400));
+    }catch(e){}
+  }
+  closeSheet();
+  toast('Скачано 6 файлов — положите их в папку data репозитория');
+}
+async function backupAll(){
+  toast('Собираю копию…');
+  const all={};
+  for(const r of ROUTES){
+    try{all[r.id]=await fetch('/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json())}catch(e){}
+  }
+  const blob=new Blob([JSON.stringify({all,date:today()},null,1)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='marshruty-vse-'+today()+'.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  closeSheet(); toast('Копия всех маршрутов сохранена');
+}
+function restoreForm(){
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+  <h2>Восстановить</h2>
+  <div class="field" style="margin-top:16px"><label>Файл копии</label>
+    <input type="file" id="f_restore" accept=".json,application/json">
+    <div class="hint">Подходит и копия одного маршрута, и копия всех сразу. Текущее содержимое заменится.</div></div>
+  <div class="row"><button class="btn accent" onclick="restore()">Загрузить</button></div>`;
+}
+function restore(){
+  const f=document.getElementById('f_restore').files[0];
+  if(!f){toast('Выберите файл');return}
+  const fr=new FileReader();
+  fr.onload=async()=>{
+    try{
+      const d=JSON.parse(fr.result);
+      if(d.all){
+        if(!confirm('Заменить содержимое всех маршрутов?')) return;
+        let n=0;
+        for(const [rid,val] of Object.entries(d.all)){
+          await fetch('/api/route?m='+rid,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+            body:JSON.stringify({stops:val.stops||[],day:val.day||null,tpl:val.tpl||null})});
+          n+=(val.stops||[]).length;
+        }
+        closeSheet(); await loadRoute(); toast('Восстановлено точек: '+n);
+      }else{
+        if(!Array.isArray(d.stops)) throw new Error('Это не копия маршрута');
+        if(!confirm('Заменить '+list.length+' точек на '+d.stops.length+'?')) return;
+        list=d.stops; plan=d.day||null; tpl=d.tpl||null;
+        render(); closeSheet(); await push(); toast('Восстановлено: '+list.length);
+      }
+    }catch(e){toast(e.message)}
+  };
+  fr.readAsText(f);
+}
+async function autoCoords(){
+  const todo=list.filter(s=>!s.lat);
+  if(!todo.length){toast('Координаты есть у всех');return}
+  const c=document.getElementById('card');
+  let ok=0,fail=[];
+  const draw=i=>{c.innerHTML=`<h2>Ищу координаты</h2><div class="steps"><b>${i}</b> из ${todo.length} · найдено ${ok}</div><div class="hint">Не закрывайте страницу.</div>`};
+  draw(0);
+  for(let i=0;i<todo.length;i++){
+    const s=todo[i]; let got=null;
+    for(const u of [s.url,s.url2]){
+      if(got||!u) continue;
+      try{const r=await fetch('/api/resolve?url='+encodeURIComponent(u),{headers:{'x-pass':pass}});
+        if(r.ok){const d=await r.json();got=[d.lat,d.lon,d.kind==='center'?'geo':'link']}}catch(e){}
+    }
+    if(!got&&s.addr){
+      try{const r=await fetch('/api/geocode?q='+encodeURIComponent(s.addr+', Краснодарский край'),{headers:{'x-pass':pass}});
+        if(r.ok){const d=await r.json();got=[d.lat,d.lon,'geo']}}catch(e){}
+      await new Promise(r=>setTimeout(r,1100));
+    }
+    if(got){s.lat=got[0];s.lon=got[1];s.cs=got[2];ok++} else fail.push(s.name);
+    draw(i+1);
+  }
+  try{await push()}catch(e){toast(e.message)}
+  render();
+  c.innerHTML=`<button class="close" onclick="closeSheet()">✕</button><h2>Готово</h2>
+    <div class="steps">Найдено: <b>${ok}</b> из ${todo.length}${fail.length?`<br><br>Не нашлось:<br>${fail.map(esc).join('<br>')}`:''}</div>
+    <div class="hint">Остальные добейте кнопкой «Взять с GPS» на точке.</div>`;
+}
+
+/* ---------- вход ---------- */
+document.getElementById('adminBtn').onclick=async()=>{
+  if(staticMode){toast('Этот адрес только для просмотра. Правки — в основном приложении');return}
+  if(admin){exitAdmin();return}
+  if(pass&&await tryPass(pass)) return;
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>Редактирование</h2>
+    <div class="field" style="margin-top:18px"><label>Пароль</label>
+      <input id="f_pass" type="password" inputmode="numeric"></div>
+    <div class="row"><button class="btn accent" onclick="tryPass(document.getElementById('f_pass').value)">Войти</button></div>`;
+  document.getElementById('sheet').classList.add('open');
+  setTimeout(()=>{const el=document.getElementById('f_pass');el&&el.focus()},150);
+};
+async function tryPass(p){
+  if(!p) return false;
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass:p})});
+    const d=await r.json();
+    if(d.ok){admin=true;setPass(p);closeSheet();toast('Тап — правка · ⋮ — действия');
+      myRoutes=null;akey='';try{localStorage.removeItem('kmz_k')}catch(e){}
+      fillPicker();document.getElementById('dock').style.display='flex';
+      await loadRoute();try{initRoutes()}catch(e){}return true}
+    toast('Пароль не подошёл');
+  }catch(e){toast('Нет связи с сервером')}
+  return false;
+}
+function exitAdmin(){admin=false;setPass('');selClear();render()}
+
+/* ---------- маршрут ---------- */
+function dist(a,b){
+  const R=6371,rad=x=>x*Math.PI/180;
+  const dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon);
+  const h=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function optimize(pts,start){
+  const left=pts.slice(), out=[]; let cur=start;
+  if(!cur){cur=left.shift();out.push(cur)}
+  while(left.length){
+    let bi=0,bd=Infinity;
+    left.forEach((p,i)=>{const d=dist(cur,p);if(d<bd){bd=d;bi=i}});
+    cur=left[bi]; out.push(cur); left.splice(bi,1);
+  }
+  for(let a=0;a<out.length-2;a++) for(let b=a+2;b<out.length;b++){
+    const before=dist(out[a],out[a+1])+(out[b+1]?dist(out[b],out[b+1]):0);
+    const after=dist(out[a],out[b])+(out[b+1]?dist(out[a+1],out[b+1]):0);
+    if(after<before-1e-9){const seg=out.slice(a+1,b+1).reverse();out.splice(a+1,b-a,...seg)}
+  }
+  return out;
+}
+const totalKm=p=>p.reduce((s,x,i)=>i?s+dist(p[i-1],x):0,0);
+function ylink(g){return 'https://yandex.ru/maps/?rtt=auto&rtext='+g.map(s=>s.lat+','+s.lon).join('~')}
+function legsHtml(pts,label){
+  const legs=[]; for(let i=0;i<pts.length;i+=10) legs.push(pts.slice(i,i+10));
+  return legs.map((g,i)=>`<div class="row"><a class="btn ${i?'flat':'accent'}" target="_blank" rel="noopener" href="${ylink(g)}">${label}${legs.length>1?` · часть ${i+1} (${i*10+1}–${i*10+g.length})`:''}</a></div>`).join('');
+}
+document.getElementById('navBtn').onclick=()=>{
+  const pts=visible().filter(s=>s.lat&&!st[s.id]);
+  if(!pts.length){toast('Нет точек с координатами');return}
+  if(pts.length===1){window.open(ylink(pts),'_blank');return}
+  window._pts=pts;
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>Маршрут · ${pts.length} точек</h2>
+    <div class="steps">Порядок как в списке · примерно ${Math.round(totalKm(pts))} км${pts.length>10?'<br>Яндекс держит до 10 точек в ссылке, поэтому разбито на части.':''}</div>
+    ${legsHtml(pts,'Ехать')}
+    <div style="height:18px"></div>
+    <button class="btn flat" onclick="buildShort()">Кратчайший путь 🧭</button>`;
+  document.getElementById('sheet').classList.add('open');
+};
+function buildShort(){
+  const pts=window._pts||[];
+  const draw=start=>{
+    const o=optimize(pts,start); window._opt=o;
+    const was=Math.round(totalKm(pts)), now=Math.round(totalKm(o));
+    document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+      <h2>Кратчайший путь</h2>
+      <div class="steps">${now} км вместо ${was} км${was>now?` · короче на ${was-now} км`:''}<br><br>${o.map((s,i)=>`<b>${i+1}.</b> ${esc(s.name)}`).join('<br>')}</div>
+      ${legsHtml(o,'Ехать')}
+      ${admin?`<div class="row"><button class="btn flat" onclick="applyShort()">Записать этот порядок в маршрут</button></div>`:''}`;
+  };
+  if(navigator&&navigator.geolocation){
+    toast('Определяю ваше место…');
+    navigator.geolocation.getCurrentPosition(p=>draw({lat:p.coords.latitude,lon:p.coords.longitude}),()=>draw(null),{timeout:8000});
+  } else draw(null);
+}
+async function applyShort(){
+  const o=window._opt||[]; if(!o.length) return;
+  const ids=o.map(s=>s.id);
+  if(tab==='day'&&planIds()){
+    plan.ids=ids.concat(plan.ids.filter(id=>!ids.includes(id)));
+  }else{
+    const rest=list.filter(s=>!ids.includes(s.id));
+    list=ids.map(id=>list.find(s=>s.id===id)).filter(Boolean).concat(rest);
+  }
+  render(); closeSheet();
+  try{await push();toast('Порядок записан')}catch(e){toast(e.message)}
+}
+
+/* ---------- карта ---------- */
+document.getElementById('mapBtn').onclick=async()=>{
+  const pts=ordered().filter(s=>s.lat);
+  const c=document.getElementById('card');
+  if(!pts.length){toast('Ни у одной точки нет координат');return}
+  c.innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>Карта · ${pts.length} точек</h2>
+    <div class="hint" style="margin:6px 0 12px">Зелёные — сдано, красные — не сдано. Тап по метке — карточка.</div>
+    <div id="map"></div>`;
+  document.getElementById('sheet').classList.add('open');
+  await ensureLeaflet();
+  const map=L.map('map',{zoomControl:false}).setView([pts[0].lat,pts[0].lon],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  const bounds=[];
+  pts.forEach((s,i)=>{
+    const stt=st[s.id];
+    const cls='pin'+(stt?(stt.d?' done':' fail'):'');
+    const m=L.marker([s.lat,s.lon],{icon:L.divIcon({className:'',html:`<div class="${cls}">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
+    m.on('click',()=>{closeSheet();setTimeout(()=>openCard(s.id),120)});
+    bounds.push([s.lat,s.lon]);
+  });
+  if(bounds.length>1) map.fitBounds(bounds,{padding:[30,30]});
+  setTimeout(()=>map.invalidateSize(),200);
+};
+function ensureLeaflet(){
+  if(window.L) return Promise.resolve();
+  return new Promise(res=>{
+    const css=document.createElement('link');
+    css.rel='stylesheet'; css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    const js=document.createElement('script');
+    js.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    js.onload=res; js.onerror=()=>{toast('Карта не загрузилась — нужен интернет');res()};
+    document.head.appendChild(js);
+  });
+}
+
+document.getElementById('shareBtn').onclick=async()=>{
+  const base=location.origin+location.pathname.replace(/[^/]*$/,'');
+  if(!admin){
+    const url=base+'r'+route+'.html'+kq('?');
+    if(navigator.share) navigator.share({title:rName(route),url}).catch(()=>{});
+    else if(navigator.clipboard){navigator.clipboard.writeText(url);toast('Ссылка скопирована')}
+    return;
+  }
+  document.getElementById('card').innerHTML=`<h2>Ссылки</h2><div class="steps">Загружаю ключи…</div>`;
+  document.getElementById('sheet').classList.add('open');
+  let keys=null;
+  try{keys=(await fetch('/api/keys',{headers:{'x-pass':pass}}).then(r=>r.json())).keys}catch(e){}
+  const body=keys?`
+    <div class="steps">Каждому водителю — своя ссылка. Чужие маршруты по ней не откроются.</div>
+    ${ROUTES.map(r=>`<div class="phrow"><span>${r.name}</span>
+      <button class="mini" style="margin:0" onclick="copyLink('${base}r${r.id}.html?k=${keys['r'+r.id]}')">Копировать</button></div>`).join('')}
+    <div class="phrow"><span><b>Все маршруты</b> — вам и руководителю</span>
+      <button class="mini" style="margin:0" onclick="copyLink('${base}rall.html?k=${keys.all}')">Копировать</button></div>
+    <div class="row" style="margin-top:18px"><button class="btn danger" onclick="newKeys()">Сменить все ключи</button></div>
+    <div class="hint">После смены старые ссылки перестанут работать.</div>`
+   :`<div class="steps">Защита ссылок не включена — маршрут открывается по любой ссылке.</div>
+     <div class="row"><button class="btn accent" onclick="newKeys()">Создать защищённые ссылки</button></div>`;
+  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button><h2>Ссылки</h2>`+body;
+};
+function copyLink(u){
+  if(navigator.share) navigator.share({url:u}).catch(()=>{});
+  else if(navigator.clipboard){navigator.clipboard.writeText(u);toast('Скопировано')}
+  else prompt('Ссылка',u);
+}
+async function newKeys(){
+  if(!confirm('Создать новые ключи? Старые ссылки перестанут работать.')) return;
+  try{
+    const d=await fetch('/api/keys',{method:'POST',headers:{'x-pass':pass}}).then(r=>r.json());
+    if(d.keys){closeSheet();toast('Ключи созданы — раздайте новые ссылки');document.getElementById('shareBtn').click()}
+  }catch(e){toast('Не получилось')}
+}
+
+try{
+  if(navigator.serviceWorker&&navigator.serviceWorker.register){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      if(reg&&reg.update) setTimeout(function(){try{reg.update()}catch(e){}},3000);
+    })['catch'](function(){});
+  }
+}catch(e){}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&!admin&&!dirty) loadRoute();
+});
+try{Object.keys(localStorage).filter(k=>k.startsWith('done_')).forEach(k=>localStorage.removeItem(k))}catch(e){}
+fillPicker();
+render();
+loadRoute();
+try{ initRoutes(); }catch(e){}
+setTimeout(()=>{
+  const el=document.getElementById('list');
+  if(el&&el.textContent.indexOf('Загружаю')>=0)
+    el.innerHTML='<div class="empty">Сервер не отвечает.<br><br>Обновите страницу — или откройте позже.</div>';
+},12000);
+</script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1216">
+<title>Импорт из Google Keep</title>
+<style>
+:root[data-theme="dark"]{--bg:#0E1216;--surface:#161C22;--surface2:#1E262E;--line:#28323B;--text:#F3F1EC;--muted:#7F8E9B;--accent:#E9B23C;--solid:#F3F1EC;--onsolid:#0E1216;--ok:#57B980;--warn:#E0785F}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.45;padding:calc(env(safe-area-inset-top) + 18px) 16px 40px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+h1{font-size:24px;letter-spacing:-.02em;margin:0 0 6px}
+.sub{color:var(--muted);font-size:14.5px;margin-bottom:22px}
+.step{background:var(--surface);border-radius:16px;padding:16px;margin-bottom:12px}
+.step h2{font-size:16px;margin:0 0 10px;letter-spacing:-.01em}
+.num{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#12191F;font-size:12.5px;font-weight:700;margin-right:8px;vertical-align:2px}
+input[type=file]{width:100%;background:var(--surface2);border-radius:11px;padding:13px;margin-top:4px}
+input[type=password]{width:100%;background:var(--surface2);border:none;border-radius:11px;padding:13px}
+.btn{display:block;width:100%;background:var(--solid);color:var(--onsolid);font-weight:650;border-radius:13px;padding:15px;text-align:center;margin-top:12px}
+.btn.accent{background:var(--accent);color:#12191F}
+.btn.flat{background:var(--surface2);color:var(--text)}
+.btn:disabled{opacity:.4}
+.hint{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+.rt{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.rt:last-child{border:none}
+.rt .lbl{flex:1;min-width:0}
+.rt .lbl b{font-weight:600;display:block;font-size:15px}
+.rt .lbl span{color:var(--muted);font-size:13px}
+.rt select{background:var(--surface2);border:none;border-radius:10px;padding:9px 10px;font-size:14px}
+.log{background:var(--surface2);border-radius:12px;padding:13px;margin-top:12px;font-size:13.5px;color:var(--muted);max-height:230px;overflow:auto;white-space:pre-wrap;line-height:1.6}
+.big{font-size:30px;font-weight:700;letter-spacing:-.02em}
+a.back{color:var(--muted);font-size:14.5px;display:inline-block;margin-bottom:16px}
+</style>
+</head>
+<body>
+<a class="back" href="./">‹ к маршрутам</a>
+<h1>Импорт из Google Keep</h1>
+<div class="sub">Файлы читаются прямо на телефоне. На сервер уйдут только точки и фото.</div>
+
+<div class="step">
+  <h2><span class="num">1</span>Пароль</h2>
+  <input type="password" id="pass" inputmode="numeric" placeholder="пароль редактирования">
+</div>
+
+<div class="step">
+  <h2><span class="num">2</span>Файлы заметок</h2>
+  <input type="file" id="files" multiple accept=".json,application/json">
+  <div class="hint">Распакуйте архив, зайдите в папку <b>Takeout / Google Keep</b>, выделите все файлы <b>.json</b> и выберите их здесь. Фото добавим следующим шагом.</div>
+  <div id="found"></div>
+</div>
+
+<div class="step" id="photoStep">
+  <h2><span class="num">3</span>Фото точек — необязательно</h2>
+  <input type="file" id="photos" multiple accept="image/*">
+  <div class="hint">Из той же папки. Привяжутся к точкам сами, лишние игнорируются.</div>
+  <button class="btn flat" id="photoOnly">Привязать фото к уже загруженным точкам</button>
+  <div class="log" id="log" style="display:none"></div>
+</div>
+
+<div class="step" id="goStep" style="display:none">
+  <h2><span class="num">4</span>Записать</h2>
+  <select id="mode" style="width:100%;background:var(--surface2);border:none;border-radius:11px;padding:13px">
+    <option value="add">Добавить к тому, что уже есть</option>
+    <option value="replace">Заменить содержимое маршрутов</option>
+  </select>
+  <button class="btn accent" id="go">Импортировать</button>
+</div>
+
+<div class="step">
+  <h2>Выгрузить тексты одним файлом</h2>
+  <input type="file" id="dump" multiple accept=".json,.html,application/json,text/html">
+  <div class="hint">Выберите файлы .json и .html из папки Google Keep (фото не нужны). Соберу их в один текстовый файл — его можно отправить на разбор.</div>
+  <button class="btn flat" id="dumpBtn">Собрать и скачать</button>
+  <div class="log" id="dumpLog" style="display:none"></div>
+</div>
+
+<script>
+const ROUTES=[{id:'1',name:'1 Краснодар'},{id:'2',name:'2 Краснодар'},{id:'3',name:'3 Краснодар'},
+{id:'4',name:'4 Краснодар'},{id:'5',name:'5 Краснодар'},{id:'6',name:'6 Побережье'}];
+let groups={}, photoFiles={};
+
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const log=t=>{const el=document.getElementById('log');el.style.display='block';el.textContent+=t+'\n';el.scrollTop=el.scrollHeight};
+
+/* угадываем маршрут по названию ярлыка */
+function guessRoute(label){
+  const l=(label||'').toLowerCase();
+  if(l.includes('побереж')) return '6';
+  const m=l.match(/\b([1-6])\b/);
+  return m?m[1]:'';
+}
+
+document.getElementById('files').onchange=async e=>{
+  const fs=[...e.target.files].filter(f=>/\.json$/i.test(f.name));
+  if(!fs.length){document.getElementById('found').innerHTML='<div class="hint">Файлы .json не выбраны</div>';return}
+  document.getElementById('found').innerHTML='<div class="hint">Читаю '+fs.length+' файлов…</div>';
+  groups={};
+  let skipped=0;
+  for(const f of fs){
+    let d; try{d=JSON.parse(await f.text())}catch(err){skipped++;continue}
+    if(d.isTrashed) {skipped++;continue}
+    const labels=(d.labels||[]).map(x=>x.name).filter(Boolean);
+    const label=labels.find(n=>/маршрут|побереж/i.test(n));
+    if(!label){skipped++;continue}
+    const text=(d.textContent||'').trim();
+    const urlM=text.match(/https?:\/\/\S+/);
+    const note=text.replace(/https?:\/\/\S+/g,'').trim();
+    const att=(d.attachments||[]).map(a=>(a.filePath||'').split('/').pop()).filter(Boolean);
+    (groups[label]=groups[label]||[]).push({
+      name:(d.title||note.split('\n')[0]||'Без названия').trim(),
+      addr:'', url:urlM?urlM[0]:'', phone:'', hours:'',
+      note:note.split('\n').slice(d.title?0:1).join('\n').trim(),
+      photoFile:att[0]||'', lat:null, lon:null,
+      ts:d.userEditedTimestampUsec||0
+    });
+  }
+  const keys=Object.keys(groups).sort();
+  if(!keys.length){document.getElementById('found').innerHTML='<div class="hint">Заметок с ярлыком маршрута не нашлось. Проверьте, что выбрали файлы из папки Google Keep.</div>';return}
+  keys.forEach(k=>groups[k].sort((a,b)=>a.ts-b.ts));
+  document.getElementById('found').innerHTML=
+    '<div style="margin-top:14px">'+keys.map(k=>`
+      <div class="rt">
+        <div class="lbl"><b>${esc(k)}</b><span>${groups[k].length} точек · с фото ${groups[k].filter(p=>p.photoFile).length}</span></div>
+        <select data-label="${esc(k)}">
+          <option value="">не грузить</option>
+          ${ROUTES.map(r=>`<option value="${r.id}" ${guessRoute(k)===r.id?'selected':''}>${r.name}</option>`).join('')}
+        </select>
+      </div>`).join('')+'</div>'+
+    (skipped?`<div class="hint">Пропущено заметок без ярлыка маршрута: ${skipped}</div>`:'');
+  document.getElementById('photoStep').style.display='block';
+  document.getElementById('goStep').style.display='block';
+};
+
+document.getElementById('photos').onchange=e=>{
+  photoFiles={};
+  [...e.target.files].forEach(f=>{photoFiles[f.name]=f});
+  log('Фото выбрано: '+Object.keys(photoFiles).length);
+};
+
+function shrink(file){
+  return new Promise(res=>{
+    const fr=new FileReader();
+    fr.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const k=Math.min(1,1000/Math.max(img.width,img.height));
+        const c=document.createElement('canvas');
+        c.width=img.width*k;c.height=img.height*k;
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        res(c.toDataURL('image/jpeg',.72));
+      };
+      img.onerror=()=>res('');
+      img.src=fr.result;
+    };
+    fr.onerror=()=>res('');
+    fr.readAsDataURL(file);
+  });
+}
+
+/* догрузка фото к уже загруженным точкам */
+document.getElementById('photoOnly').onclick=async()=>{
+  const btn=document.getElementById('photoOnly');
+  const pass=document.getElementById('pass').value.trim();
+  document.getElementById('log').textContent='';
+  if(!pass){log('Впишите пароль в шаге 1');return}
+  log('Проверяю пароль…');
+  const auth=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass})}).then(r=>r.json()).catch(()=>({}));
+  if(!auth.ok){log('Пароль не подошёл');return}
+  const files={}; [...document.getElementById('photos').files].forEach(f=>files[f.name]=f);
+  if(!Object.keys(files).length){log('Сначала выберите фото в шаге 3');return}
+  btn.disabled=true; btn.textContent='Работаю, не закрывайте вкладку…';
+  log('Файлов выбрано: '+Object.keys(files).length);
+  let total=0;
+  for(const r of ROUTES){
+    const cur=await fetch('/api/route?m='+r.id,{cache:'no-store',headers:{'x-pass':pass}}).then(x=>x.json()).catch(()=>({stops:[]}));
+    const stops=cur.stops||[]; let n=0;
+    for(const st of stops){
+      if(st.photo||!st.pf||!files[st.pf]) continue;
+      try{
+        const data=await shrink(files[st.pf]);
+        if(!data) continue;
+        const res=await fetch('/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},body:JSON.stringify({data})});
+        const d=await res.json(); if(d.id){st.photo=d.id;n++}
+      }catch(e){}
+      if(n&&n%10===0) log('  '+r.name+': '+n);
+    }
+    if(n){
+      await fetch('/api/route?m='+r.id,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+        body:JSON.stringify({stops,day:cur.day||null})});
+      log(r.name+': привязано фото '+n);
+      total+=n;
+    } else {
+      const need=stops.filter(x=>x.pf&&!x.photo).length;
+      log(r.name+': точек '+stops.length+(need?', ждут фото '+need+' — нужных файлов в выборке нет':', привязывать нечего'));
+    }
+  }
+  btn.disabled=false; btn.textContent='Привязать фото к уже загруженным точкам';
+  log(total?('\nГотово. Всего привязано фото: '+total):'\nНичего не привязалось. Проверьте, что точки загружены через «Восстановить из копии».');
+};
+
+/* выгрузка всех текстов в один файл */
+document.getElementById('dumpBtn').onclick=async()=>{
+  const inp=document.getElementById('dump');
+  const fs=[...inp.files].filter(f=>/\.(json|html)$/i.test(f.name));
+  const dl=document.getElementById('dumpLog');
+  if(!fs.length){dl.style.display='block';dl.textContent='Файлы не выбраны';return}
+  dl.style.display='block'; dl.textContent='Читаю '+fs.length+' файлов…\n';
+  const out=[]; let bad=0;
+  for(let i=0;i<fs.length;i++){
+    const f=fs[i];
+    try{
+      const t=await f.text();
+      if(/\.json$/i.test(f.name)){
+        const d=JSON.parse(t);
+        out.push({
+          f:f.name,
+          title:d.title||'',
+          text:d.textContent||'',
+          labels:(d.labels||[]).map(x=>x.name),
+          att:(d.attachments||[]).map(a=>(a.filePath||'').split('/').pop()),
+          trashed:!!d.isTrashed, archived:!!d.isArchived,
+          created:d.createdTimestampUsec||0, edited:d.userEditedTimestampUsec||0,
+          list:(d.listContent||[]).map(x=>x.text)
+        });
+      }else{
+        const doc=new DOMParser().parseFromString(t,'text/html');
+        out.push({f:f.name,title:(doc.querySelector('title')||{}).textContent||'',
+          text:(doc.body?doc.body.innerText||doc.body.textContent:'').replace(/\n{3,}/g,'\n\n').trim(),
+          labels:[...doc.querySelectorAll('.label')].map(e=>e.textContent.trim()),from:'html'});
+      }
+    }catch(e){bad++}
+    if(i%100===0) dl.textContent+='  '+i+'…\n';
+  }
+  const blob=new Blob([JSON.stringify(out,null,1)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='keep-teksty.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  dl.textContent+='\nГотово: '+out.length+' заметок'+(bad?', пропущено '+bad:'')+'\nФайл keep-teksty.json ушёл в загрузки.';
+};
+
+document.getElementById('go').onclick=async()=>{
+  const pass=document.getElementById('pass').value.trim();
+  if(!pass){alert('Впишите пароль');return}
+  const auth=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass})}).then(r=>r.json()).catch(()=>({}));
+  if(!auth.ok){alert('Пароль не подошёл');return}
+  const mode=document.getElementById('mode').value;
+  const map={};
+  document.querySelectorAll('select[data-label]').forEach(s=>{if(s.value) map[s.dataset.label]=s.value});
+  if(!Object.keys(map).length){alert('Ни один ярлык не привязан к маршруту');return}
+  document.getElementById('go').disabled=true;
+
+  for(const [label,rid] of Object.entries(map)){
+    log('\n— '+label+' → маршрут '+rid);
+    const cur=await fetch('/api/route?m='+rid,{cache:'no-store',headers:{'x-pass':pass}}).then(r=>r.json()).catch(()=>({stops:[]}));
+    const base=mode==='replace'?[]:(cur.stops||[]);
+    let n=0, ph=0;
+    for(const p of groups[label]){
+      const stop={id:'k'+Date.now().toString(36)+(n++),name:p.name,addr:p.addr,url:p.url,
+        phone:p.phone,hours:p.hours,note:p.note,photo:'',lat:null,lon:null};
+      const f=p.photoFile&&photoFiles[p.photoFile];
+      if(f){
+        try{
+          const data=await shrink(f);
+          if(data){
+            const r=await fetch('/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},body:JSON.stringify({data})});
+            const d=await r.json(); if(d.id){stop.photo=d.id;ph++}
+          }
+        }catch(e){}
+      }
+      base.push(stop);
+      if(n%10===0) log('  точек: '+n);
+    }
+    const w=await fetch('/api/route?m='+rid,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+      body:JSON.stringify({stops:base,day:cur.day||null})});
+    log(w.ok?`  готово: ${n} точек, фото ${ph}`:'  ОШИБКА записи');
+  }
+  log('\nВсё. Возвращайтесь к маршрутам.');
+  document.getElementById('go').disabled=false;
+};
+</script>
+</body>
+</html>
