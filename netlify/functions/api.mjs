@@ -6,12 +6,30 @@ import { getStore } from '@netlify/blobs';
    Пароль редактирования — переменная окружения ADMIN_PASS. */
 
 export const config = { path: "/api/*" };
+
+/* Сайт-витрина живёт на GitHub Pages и обращается сюда с другого домена.
+   Браузер такие запросы пропускает только с разрешением ниже. */
+const ALLOWED_ORIGINS = [
+  "https://poggorniiorg-ui.github.io"
+];
+const corsHeaders = (req) => {
+  const o = req.headers.get("origin") || "";
+  if (!ALLOWED_ORIGINS.includes(o)) return null;
+  return {
+    "access-control-allow-origin": o,
+    "access-control-allow-methods": "GET,POST,DELETE,OPTIONS",
+    "access-control-allow-headers": "content-type,x-pass",
+    "access-control-max-age": "86400",
+    "vary": "origin"
+  };
+};
+
 const PASS = () => process.env.ADMIN_PASS || "1";
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
 });
-export default async (req) => {
+const handle = async (req) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api\/?/, "");
   const routes = getStore("kmz-routes");
@@ -190,4 +208,14 @@ export default async (req) => {
   } catch (e) {
     return json({ error: String(e && e.message ? e.message : e) }, 500);
   }
+};
+
+export default async (req) => {
+  const ch = corsHeaders(req);
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: ch || {} });
+  const res = await handle(req);
+  if (!ch) return res;
+  const h = new Headers(res.headers);
+  for (const k of Object.keys(ch)) h.set(k, ch[k]);
+  return new Response(res.body, { status: res.status, headers: h });
 };
