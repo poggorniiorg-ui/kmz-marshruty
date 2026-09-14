@@ -1,9 +1,11 @@
 /* Кэш приложения. ВАЖНО: фото лежат в отдельном хранилище,
    которое НЕ чистится при обновлении версии — иначе после каждой
    заливки телефон качал бы все фото заново. */
-const V   = 'kmz-app-v16';
+const V   = 'kmz-app-v17';
 const PIC = 'kmz-photos';          // версию не менять никогда
 const SHELL = ['./','./index.html','./import.html','./manifest.json','./icon.svg'];
+/* Сервер живёт на отдельном домене — фото оттуда тоже кэшируем. */
+const API_HOST = 'glistening-narwhal-c13cfe.netlify.app';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -31,15 +33,22 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   let u;
   try { u = new URL(e.request.url); } catch (err) { return; }
-  if (u.origin !== self.location.origin) return;
+  const sameOrigin = (u.origin === self.location.origin);
+  const isApiHost  = (u.hostname === API_HOST);
+  if (!sameOrigin && !isApiHost) return;
 
   if (u.pathname.indexOf('/api/photo') === 0) {
+    /* С чужого домена запрашиваем фото в режиме cors — иначе ответ
+       непрозрачный и в кэш не кладётся, то есть офлайн фото пропадут. */
+    const picReq = sameOrigin
+      ? e.request
+      : new Request(e.request.url, { mode: 'cors', credentials: 'omit' });
     e.respondWith(
       caches.open(PIC).then(c =>
-        c.match(e.request).then(hit => {
+        c.match(picReq).then(hit => {
           if (hit) return hit;
-          return fetch(e.request).then(r => {
-            if (r && r.ok) { try { c.put(e.request, r.clone()); } catch (err) {} }
+          return fetch(picReq).then(r => {
+            if (r && r.ok) { try { c.put(picReq, r.clone()); } catch (err) {} }
             return r;
           }).catch(() => new Response('', { status: 504 }));
         })
@@ -49,6 +58,7 @@ self.addEventListener('fetch', e => {
   }
 
   if (u.pathname.indexOf('/api/') === 0) return;
+  if (!sameOrigin) return;
 
   e.respondWith(
     withTimeout(e.request, 4000)

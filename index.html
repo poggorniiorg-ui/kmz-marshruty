@@ -214,7 +214,7 @@ const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 const hhmm=iso=>{try{const d=new Date(iso);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}catch(e){return''}};
 const planIds=()=>(plan&&plan.date===today())?(plan.ids||[]):null;
 const rName=id=>(ROUTES.find(r=>r.id===id)||{}).name||id;
-const photoUrl=id=>staticMode?('data/photos/'+encodeURIComponent(id)+'.jpg'):('/api/photo?id='+encodeURIComponent(id));
+const photoUrl=id=>staticMode?('data/photos/'+encodeURIComponent(id)+'.jpg'):(API+'/api/photo?id='+encodeURIComponent(id));
 
 function toast(t,action){
   const el=document.getElementById('toast');
@@ -235,7 +235,13 @@ setTheme(LS.get('theme')||'dark');
 document.getElementById('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
 
 /* ---------- сервер ---------- */
-/* Если серверных функций нет (GitHub Pages) — читаем маршруты
+/* Адрес сервера. На самом Netlify — свой же домен (пустая строка = обычный
+   относительный путь). На GitHub Pages и где угодно ещё — обращаемся
+   к серверу на Netlify напрямую, через полный адрес. */
+const API = (/netlify\.app$/.test(location.hostname) || location.hostname === 'localhost')
+  ? '' : 'https://glistening-narwhal-c13cfe.netlify.app';
+
+/* Если сервер недоступен — читаем маршруты
    из файлов data/route-N.json, лежащих рядом в репозитории. */
 let staticMode=false;
 async function loadStatic(m){
@@ -261,8 +267,8 @@ async function loadRoute(){
   try{
     const ctl=new AbortController(); const tmo=setTimeout(()=>ctl.abort(),9000);
     const [r,s2]=await Promise.all([
-      fetch('/api/route?m='+route+kq('&'),{cache:'no-store',headers:hdr(),signal:ctl.signal}).then(x=>x.json()),
-      fetch('/api/status?m='+route+'&d='+today()+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json()).catch(()=>({st:{}}))
+      fetch(API+'/api/route?m='+route+kq('&'),{cache:'no-store',headers:hdr(),signal:ctl.signal}).then(x=>x.json()),
+      fetch(API+'/api/status?m='+route+'&d='+today()+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json()).catch(()=>({st:{}}))
     ]);
     clearTimeout(tmo);
     if(r.error){if(!hadCache) noAccess(r.error); else{offline=true;render()} return}
@@ -299,7 +305,7 @@ async function loadRoute(){
 }
 async function push(){
   if(staticMode) throw new Error('Правки недоступны: сайт работает из файлов, без сервера');
-  const r=await fetch('/api/route?m='+route,{method:'POST',
+  const r=await fetch(API+'/api/route?m='+route,{method:'POST',
     headers:{'content-type':'application/json','x-pass':pass},
     body:JSON.stringify({stops:list,day:plan,tpl})});
   if(!r.ok){const e=await r.json().catch(()=>({}));dirty=true;render();throw new Error(e.error||'Не сохранилось')}
@@ -319,7 +325,7 @@ async function setStatus(id,done,reason,clear){
   saveLocalStatus();
   if(staticMode) return;
   try{
-    await fetch('/api/status?m='+route+'&d='+today()+kq('&'),{method:'POST',
+    await fetch(API+'/api/status?m='+route+'&d='+today()+kq('&'),{method:'POST',
       headers:{'content-type':'application/json'},
       body:JSON.stringify({id,done,reason,clear})});
   }catch(e){toast('Отметка не ушла — нет связи')}
@@ -328,7 +334,7 @@ async function loadAll(){
   if(allRoutes) return allRoutes;
   allRoutes={};
   await Promise.all(ROUTES.map(async r=>{
-    try{const d=await fetch('/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json());allRoutes[r.id]=d.stops||[]}
+    try{const d=await fetch(API+'/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json());allRoutes[r.id]=d.stops||[]}
     catch(e){allRoutes[r.id]=[]}
   }));
   return allRoutes;
@@ -365,7 +371,7 @@ async function initRoutes(){
   if(akey||pass){
     try{
       const c=new AbortController(); const t=setTimeout(()=>c.abort(),6000);
-      const d=await fetch('/api/access'+kq('?'),{cache:'no-store',headers:hdr(),signal:c.signal}).then(x=>x.json());
+      const d=await fetch(API+'/api/access'+kq('?'),{cache:'no-store',headers:hdr(),signal:c.signal}).then(x=>x.json());
       clearTimeout(t);
       if(Array.isArray(d.routes)&&d.routes.length&&d.routes.length<ROUTES.length) myRoutes=d.routes.slice().sort();
     }catch(e){}
@@ -512,10 +518,10 @@ function selMove(){
 async function doBulkMove(mode){
   const to=document.getElementById('f_to').value, ids=[...sel];
   try{
-    const d=await fetch('/api/route?m='+to+kq('&'),{cache:'no-store',headers:hdr()}).then(r=>r.json());
+    const d=await fetch(API+'/api/route?m='+to+kq('&'),{cache:'no-store',headers:hdr()}).then(r=>r.json());
     const arr=d.stops||[];
     ids.forEach((id,i)=>{const s=list.find(x=>x.id===id);if(s) arr.push({...s,id:'c'+Date.now().toString(36)+i})});
-    const w=await fetch('/api/route?m='+to,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+    const w=await fetch(API+'/api/route?m='+to,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
       body:JSON.stringify({stops:arr,day:d.day||null,tpl:d.tpl||null})});
     if(!w.ok) throw new Error('Не записалось');
     if(mode==='move'){
@@ -578,7 +584,7 @@ async function history_(id){
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
     <h2>${esc(s.name)}</h2><div class="steps">Загружаю историю…</div>`;
   document.getElementById('sheet').classList.add('open');
-  if(!visits){try{visits=(await fetch('/api/visits?m='+route).then(r=>r.json())).v||{}}catch(e){visits={}}}
+  if(!visits){try{visits=(await fetch(API+'/api/visits?m='+route).then(r=>r.json())).v||{}}catch(e){visits={}}}
   const v=(visits[id]||[]).slice().reverse();
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
     <h2>${esc(s.name)}</h2>
@@ -787,7 +793,7 @@ async function saveStop(id){
   const file=document.getElementById('f_photo').files[0];
   try{
     if(file){toast('Загружаю фото…');const old=s.photo;s.photo=await uploadPhoto(file);
-      if(old) fetch('/api/photo?id='+encodeURIComponent(old),{method:'DELETE',headers:{'x-pass':pass}}).catch(()=>{})}
+      if(old) fetch(API+'/api/photo?id='+encodeURIComponent(old),{method:'DELETE',headers:{'x-pass':pass}}).catch(()=>{})}
     if(isNew) list.push(s);
     await push(); render(); closeSheet(); toast('Сохранено');
   }catch(e){toast(e.message)}
@@ -803,7 +809,7 @@ function uploadPhoto(file){
         c.width=img.width*k;c.height=img.height*k;
         c.getContext('2d').drawImage(img,0,0,c.width,c.height);
         try{
-          const r=await fetch('/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+          const r=await fetch(API+'/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
             body:JSON.stringify({data:c.toDataURL('image/jpeg',.72)})});
           const d=await r.json(); d.id?res(d.id):rej(new Error(d.error||'Фото не загрузилось'));
         }catch(e){rej(new Error('Фото не загрузилось — проверьте связь'))}
@@ -1005,7 +1011,7 @@ async function exportForGithub(){
   const zipNote=[];
   for(const r of ROUTES){
     try{
-      const d=await fetch('/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json());
+      const d=await fetch(API+'/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json());
       const blob=new Blob([JSON.stringify({stops:d.stops||[],day:d.day||null,tpl:d.tpl||null},null,1)],{type:'application/json'});
       const a=document.createElement('a');
       a.href=URL.createObjectURL(blob); a.download='route-'+r.id+'.json'; a.click();
@@ -1021,7 +1027,7 @@ async function backupAll(){
   toast('Собираю копию…');
   const all={};
   for(const r of ROUTES){
-    try{all[r.id]=await fetch('/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json())}catch(e){}
+    try{all[r.id]=await fetch(API+'/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json())}catch(e){}
   }
   const blob=new Blob([JSON.stringify({all,date:today()},null,1)],{type:'application/json'});
   const a=document.createElement('a');
@@ -1048,7 +1054,7 @@ function restore(){
         if(!confirm('Заменить содержимое всех маршрутов?')) return;
         let n=0;
         for(const [rid,val] of Object.entries(d.all)){
-          await fetch('/api/route?m='+rid,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+          await fetch(API+'/api/route?m='+rid,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
             body:JSON.stringify({stops:val.stops||[],day:val.day||null,tpl:val.tpl||null})});
           n+=(val.stops||[]).length;
         }
@@ -1074,11 +1080,11 @@ async function autoCoords(){
     const s=todo[i]; let got=null;
     for(const u of [s.url,s.url2]){
       if(got||!u) continue;
-      try{const r=await fetch('/api/resolve?url='+encodeURIComponent(u),{headers:{'x-pass':pass}});
+      try{const r=await fetch(API+'/api/resolve?url='+encodeURIComponent(u),{headers:{'x-pass':pass}});
         if(r.ok){const d=await r.json();got=[d.lat,d.lon,d.kind==='center'?'geo':'link']}}catch(e){}
     }
     if(!got&&s.addr){
-      try{const r=await fetch('/api/geocode?q='+encodeURIComponent(s.addr+', Краснодарский край'),{headers:{'x-pass':pass}});
+      try{const r=await fetch(API+'/api/geocode?q='+encodeURIComponent(s.addr+', Краснодарский край'),{headers:{'x-pass':pass}});
         if(r.ok){const d=await r.json();got=[d.lat,d.lon,'geo']}}catch(e){}
       await new Promise(r=>setTimeout(r,1100));
     }
@@ -1108,7 +1114,7 @@ document.getElementById('adminBtn').onclick=async()=>{
 async function tryPass(p){
   if(!p) return false;
   try{
-    const r=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass:p})});
+    const r=await fetch(API+'/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass:p})});
     const d=await r.json();
     if(d.ok){admin=true;setPass(p);closeSheet();toast('Тап — правка · ⋮ — действия');
       myRoutes=null;akey='';try{localStorage.removeItem('kmz_k')}catch(e){}
@@ -1238,7 +1244,7 @@ document.getElementById('shareBtn').onclick=async()=>{
   document.getElementById('card').innerHTML=`<h2>Ссылки</h2><div class="steps">Загружаю ключи…</div>`;
   document.getElementById('sheet').classList.add('open');
   let keys=null;
-  try{keys=(await fetch('/api/keys',{headers:{'x-pass':pass}}).then(r=>r.json())).keys}catch(e){}
+  try{keys=(await fetch(API+'/api/keys',{headers:{'x-pass':pass}}).then(r=>r.json())).keys}catch(e){}
   const body=keys?`
     <div class="steps">Каждому водителю — своя ссылка. Чужие маршруты по ней не откроются.</div>
     ${ROUTES.map(r=>`<div class="phrow"><span>${r.name}</span>
@@ -1259,7 +1265,7 @@ function copyLink(u){
 async function newKeys(){
   if(!confirm('Создать новые ключи? Старые ссылки перестанут работать.')) return;
   try{
-    const d=await fetch('/api/keys',{method:'POST',headers:{'x-pass':pass}}).then(r=>r.json());
+    const d=await fetch(API+'/api/keys',{method:'POST',headers:{'x-pass':pass}}).then(r=>r.json());
     if(d.keys){closeSheet();toast('Ключи созданы — раздайте новые ссылки');document.getElementById('shareBtn').click()}
   }catch(e){toast('Не получилось')}
 }
