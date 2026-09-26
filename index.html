@@ -1,1295 +1,684 @@
-<!DOCTYPE html>
-<html lang="ru" data-theme="dark">
+<!doctype html>
+<html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0E1216">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Точки КМЗ</title>
 <link rel="manifest" href="manifest.json">
-<title>Маршруты · КМЗ №1</title>
+<meta name="theme-color" content="#EEF2F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A110F" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap">
 <style>
-:root[data-theme="dark"]{
-  --bg:#0E1216;--surface:#161C22;--surface2:#1E262E;--line:#28323B;
-  --text:#F3F1EC;--muted:#7F8E9B;--accent:#E9B23C;
-  --solid:#F3F1EC;--onsolid:#0E1216;
-  --ok:#57B980;--warn:#E0785F;--shadow:none;--imgbg:#1E262E;--sheet:#141A20;
+:root{
+  color-scheme:light;
+  --bg:#EEF2F0; --card:#FFFFFF; --soft:#F4F7F5; --line:#DCE3E0;
+  --ink:#0F1A17; --ink2:#4B5A55; --mute:#8A9793;
+  --brand:#0E5A43; --brand-ink:#FFFFFF; --brand-soft:#DDEDE6;
+  --ok:#1F9D6B; --okbg:#E1F4EB; --red:#D8544A; --redbg:#FBE7E4;
+  --pay:#2F5FD0; --paybg:#E4EBFB; --amb:#A86A12; --ambbg:#FBF0DC; --warn:#B3271E; --warnbg:#FBE4E0;
+  --max:#1F6FF0;
+  --shadow:0 1px 2px rgba(15,26,23,.05),0 6px 20px -10px rgba(15,26,23,.18);
+  --glass:rgba(238,242,240,.86);
+  --f:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --d:"Unbounded","Onest",system-ui,sans-serif;
 }
-:root[data-theme="light"]{
-  --bg:#FBFAF8;--surface:#FFFFFF;--surface2:#F2F0EC;--line:#E7E4DE;
-  --text:#121619;--muted:#767D84;--accent:#B8860B;
-  --solid:#121619;--onsolid:#FFFFFF;
-  --ok:#2E8B57;--warn:#BF5238;--shadow:0 1px 3px rgba(18,22,25,.07);--imgbg:#F2F0EC;--sheet:#FFFFFF;
-}
+@media (prefers-color-scheme:dark){:root{
+  color-scheme:dark;
+  --bg:#0A110F; --card:#121B18; --soft:#18231F; --line:#23312C;
+  --ink:#EAF1EE; --ink2:#A8B7B1; --mute:#6E7E78;
+  --brand:#3FC495; --brand-ink:#06140F; --brand-soft:#15332A;
+  --ok:#3FC495; --okbg:#133027; --red:#F0766B; --redbg:#3A1D1A;
+  --pay:#8AA8F5; --paybg:#1A2440; --amb:#E6B45E; --ambbg:#33281A; --warn:#F0766B; --warnbg:#3A1D1A;
+  --max:#4C8DF6;
+  --shadow:0 1px 0 rgba(255,255,255,.03),0 10px 30px -12px rgba(0,0,0,.6);
+  --glass:rgba(10,17,15,.86);
+}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;overscroll-behavior-y:none}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.45;padding-bottom:100px;-webkit-font-smoothing:antialiased}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer;border:none;background:none}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-select:focus,input:focus,textarea:focus{outline:none}
-a{color:inherit;text-decoration:none}
-svg{display:block}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--f);-webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums;padding-bottom:96px;overscroll-behavior-y:contain}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 
-header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(safe-area-inset-top) + 12px) 16px 0}
-.hrow{display:flex;align-items:center;gap:8px}
-.route-pick{flex:1;background:transparent;border:none;padding:2px 24px 2px 0;font-weight:700;font-size:25px;letter-spacing:-.02em;appearance:none;
-  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
-  background-position:calc(100% - 8px) 58%,calc(100% - 3px) 58%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
-.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-size:15px;flex:none}
-.icon-btn.on{background:var(--accent);color:#12191F}
-.search{margin-top:14px;width:100%;background:var(--surface2);border:none;border-radius:12px;padding:12px 15px;font-size:16px}
-.search::placeholder{color:var(--muted)}
-.tabs{display:flex;gap:22px;margin-top:16px;border-bottom:1px solid var(--line)}
-.tab{padding:0 0 11px;font-size:15px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:-.01em}
-.tab.on{color:var(--text);border-color:var(--accent)}
-.tab span{font-weight:500;font-size:13px;color:var(--muted);margin-left:2px}
-.progress{padding:12px 16px 0}
-.pbar{height:4px;border-radius:3px;background:var(--surface2);overflow:hidden}
-.pbar i{display:block;height:100%;background:var(--ok);border-radius:3px;transition:width .3s ease}
-.meta{padding:8px 16px 2px;color:var(--muted);font-size:13px}
-.meta b{color:var(--text);font-weight:600}
+.app{display:grid;grid-template-columns:272px minmax(0,1fr);max-width:1280px;margin:0 auto}
+/* ---------- sidebar (ПК) ---------- */
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;padding:26px 16px 24px 22px;display:flex;flex-direction:column;gap:22px;border-right:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{width:40px;height:40px;border-radius:12px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font:700 12px var(--d);letter-spacing:.02em}
+.logo b{font:700 17px var(--d);letter-spacing:-.01em;display:block}
+.logo span{font-size:12px;color:var(--mute)}
+.nl{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);padding:0 10px;margin-bottom:6px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:12px;border:0;background:none;text-align:left;color:var(--ink2);font-size:15px;transition:background .15s,color .15s}
+.nav button:hover{background:var(--soft);color:var(--ink)}
+.nav button[aria-selected=true]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.nav .t{flex:1;font-weight:500;line-height:1.25}
+.nav .t small{display:block;font-weight:400;font-size:12px;color:var(--mute)}
+.nav .n{font-size:12px;color:var(--mute)}
+.ring{width:26px;height:26px;flex:none}
+.ring circle{fill:none;stroke-width:3}
+.ring .b{stroke:var(--line)} .ring .o{stroke:var(--ok);stroke-linecap:round;transition:stroke-dashoffset .4s}
+.ring.full .o{stroke:var(--ok)}
+.side-foot{margin-top:auto;font-size:12px;color:var(--mute);padding:0 10px}
 
-main{padding:8px 16px}
-.stop{display:flex;gap:12px;background:var(--surface);border-radius:16px;padding:12px 8px 12px 13px;margin-bottom:8px;align-items:center;box-shadow:var(--shadow);position:relative;touch-action:pan-y}
-.stop.done{opacity:.45}
-.stop.fail{box-shadow:inset 0 0 0 1px rgba(224,120,95,.45),var(--shadow)}
-.stop.sel{box-shadow:inset 0 0 0 2px var(--accent)}
-.stop.drag{z-index:5;box-shadow:0 12px 30px rgba(0,0,0,.3);transform:scale(1.02)}
-.stop.shift{transition:transform .16s ease}
-.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--surface2);color:var(--muted);font-weight:600;font-size:13px;display:grid;place-items:center;font-variant-numeric:tabular-nums}
-.stop.done .num{background:rgba(87,185,128,.16);color:var(--ok)}
-.stop.fail .num{background:rgba(224,120,95,.16);color:var(--warn)}
-.sbody{min-width:0;flex:1}
-.sname{font-weight:600;font-size:16.5px;line-height:1.25;letter-spacing:-.01em}
-.saddr{color:var(--muted);font-size:13.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.marks{color:var(--muted);font-size:12.5px;margin-top:4px;display:flex;gap:9px;flex-wrap:wrap}
-.marks .warn{color:var(--warn)}
-.marks .ok{color:var(--ok)}
-.thumb{width:48px;height:48px;border-radius:12px;object-fit:cover;flex:none;background:var(--imgbg)}
-.tick{flex:none;width:26px;height:26px;border-radius:8px;box-shadow:inset 0 0 0 2px var(--line);display:grid;place-items:center;font-size:13px;color:#12191F}
-.tick.on{background:var(--accent);box-shadow:none}
-.kebab{flex:none;width:34px;height:40px;display:grid;place-items:center;color:var(--muted);font-size:18px;border-radius:10px}
-.grip{flex:none;width:28px;height:44px;display:grid;place-items:center;color:var(--muted);touch-action:none;cursor:grab}
-.empty{color:var(--muted);text-align:center;padding:52px 24px;font-size:15px;line-height:1.55}
-.gsec{margin:18px 0 8px;color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+/* ---------- шапка ---------- */
+.col{min-width:0}
+header{position:sticky;top:0;z-index:10;background:var(--glass);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);
+  padding:calc(env(safe-area-inset-top) + 18px) 28px 12px;border-bottom:1px solid transparent}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+h1{font:700 26px/1.1 var(--d);letter-spacing:-.02em;margin:5px 0 0}
+.date{font-size:13px;color:var(--ink2);background:var(--card);border:1px solid var(--line);padding:6px 12px;border-radius:999px;white-space:nowrap}
+.stats{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:6px 20px;align-items:center}
+.big{font:700 32px/1 var(--d);letter-spacing:-.03em}
+.big small{font:500 13px var(--f);color:var(--mute);letter-spacing:0;margin-left:5px}
+.sbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;display:flex}
+.sbar i{display:block;height:100%;width:0;transition:width .4s}
+.sbar .ok{background:var(--ok)} .sbar .no{background:var(--red)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend b{color:var(--ink);font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%}
+.stat{font-size:14px;color:var(--ink2);margin-top:12px}
+.tabs{display:none;gap:8px;overflow-x:auto;margin:14px -16px 0;padding:2px 16px 2px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;height:38px;padding:0 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:14px;font-weight:500;color:var(--ink2);display:inline-flex;align-items:center;gap:7px}
+.tab[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab i{font-style:normal;font-weight:400;opacity:.65;font-size:12px}
+.bar{display:flex;gap:8px;margin-top:14px}
+.srch{flex:1;min-width:0;position:relative}
+.srch svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--mute);pointer-events:none}
+.bar input{width:100%;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 14px 0 42px;font:16px var(--f)}
+.bar input::placeholder{color:var(--mute)}
+.bar input:focus{outline:2px solid var(--brand);outline-offset:0;border-color:transparent}
+#hide{flex:0 0 auto;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink2);padding:0 16px;font-size:14px;font-weight:600}
+#hide[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 
-.dock{position:fixed;left:0;right:0;bottom:0;z-index:25;background:linear-gradient(to top,var(--bg) 72%,transparent);padding:16px;display:flex;gap:8px}
-.btn{flex:1;background:var(--solid);color:var(--onsolid);font-weight:650;font-size:16px;border-radius:14px;padding:15px;text-align:center;display:flex;align-items:center;justify-content:center;gap:9px;letter-spacing:-.01em}
-.btn.ghost{background:var(--surface2);color:var(--text);flex:none;width:50px;font-size:17px;font-weight:400;padding:15px 0}
-.btn.accent{background:var(--accent);color:#12191F}
-.btn.flat{background:var(--surface2);color:var(--text)}
-.btn.danger{background:transparent;color:var(--warn);box-shadow:inset 0 0 0 1px var(--line)}
-.btn.good{background:var(--ok);color:#fff}
-.btn:disabled{opacity:.45}
+/* ---------- список ---------- */
+main{padding:6px 28px 20px}
+.sec{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin:20px 4px 8px}
+.hdr{display:flex;width:100%;align-items:center;gap:10px;margin:14px 0 8px;background:var(--soft);border:1px solid var(--line);border-radius:14px;
+  padding:14px 16px;font:600 15px/1 var(--f);color:var(--ink);text-align:left}
+.hdr:first-child{margin-top:8px}
+.hdr i{font-style:normal;font-weight:500;color:var(--mute);margin-left:auto;font-size:13px}
+.hdr .car{color:var(--mute);transition:transform .2s;display:inline-block}
+.hdr.on .car{transform:rotate(90deg)}
+.rowwrap{background:var(--card);border-radius:18px;margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow);transition:opacity .2s}
+.rowline{display:flex;align-items:center;gap:6px}
+.num{flex:none;width:30px;height:30px;margin-left:14px;border-radius:10px;background:var(--soft);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--ink2)}
+.s-ok .num{background:var(--okbg);color:var(--ok)}
+.s-no .num{background:var(--redbg);color:var(--red)}
+.row{flex:1;min-width:0;background:none;border:0;padding:14px 4px 14px 10px;text-align:left;font:inherit;color:inherit}
+.row b{font-weight:600;font-size:16.5px;letter-spacing:-.005em;display:block}
+.s-ok .row b,.s-no .row b{color:var(--ink2)}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.tg{font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px;line-height:1.35;background:var(--soft);color:var(--ink2)}
+.tg.fri{background:var(--ambbg);color:var(--amb)}
+.tg.pay,.tg.grp{background:var(--paybg);color:var(--pay)}
+.tg.warn{background:var(--warnbg);color:var(--warn)}
+.tg.new{background:var(--brand);color:var(--brand-ink)}
+.tg.st-ok{background:var(--okbg);color:var(--ok)}
+.tg.st-no{background:var(--redbg);color:var(--red)}
+.quick{display:flex;gap:8px;padding:10px 12px 10px 0}
+.quick button{width:50px;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--mute);display:grid;place-items:center;transition:all .15s}
+.quick button:hover{border-color:var(--mute);color:var(--ink)}
+.quick button[aria-pressed=true]{border-color:transparent;color:#fff}
+.quick .q-ok[aria-pressed=true]{background:var(--ok)}
+.quick .q-no[aria-pressed=true]{background:var(--red)}
+.body{padding:4px 16px 16px;border-top:1px solid var(--line)}
+.pl{font-size:14.5px;font-weight:500;padding:11px 13px;border-radius:12px;margin:12px 0 0}
+.pl.fri{background:var(--ambbg);color:var(--amb);font-weight:600}
+.pl.warn{background:var(--warnbg);color:var(--warn)}
+.pl.pay{background:var(--paybg);color:var(--pay)}
+.link{background:var(--brand-soft);color:var(--ink);border-radius:14px;padding:12px 14px;margin:12px 0 0;font-size:15px}
+.link b{font-weight:600;display:block;margin-bottom:4px}
+.link .gl{display:flex;flex-wrap:wrap;gap:2px 14px}
+.link .gl button{border:0;background:none;color:var(--ink);font:inherit;text-decoration:underline;text-decoration-color:var(--mute);text-underline-offset:3px;padding:5px 0;text-align:left}
+.ph{margin-top:14px}
+.ph small{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
+.ph div{display:flex;flex-wrap:wrap;gap:8px}
+.ph a{text-decoration:none;border-radius:12px;font-weight:600;font-size:15px;padding:11px 14px;display:inline-flex;align-items:center}
+.ph a.call{background:var(--brand);color:var(--brand-ink);font-size:16px}
+.ph a.m{background:var(--card);color:var(--ink);border:1px solid var(--line);padding:10px 13px}
+.ph a.max{background:var(--max);color:#fff;border-color:var(--max)}
+.none{color:var(--mute);font-size:15px;margin:14px 0 0}
+.more{width:100%;margin-top:14px;border:1px solid var(--line);background:var(--soft);border-radius:14px;padding:14px 16px;
+  font:600 15px/1 var(--f);color:var(--ink);text-align:left;display:flex;justify-content:space-between;align-items:center}
+.more span{color:var(--mute);font-weight:500;font-size:13px}
+.cat{display:flex;gap:10px;align-items:baseline;margin-top:10px}
+.cat h4{margin:0;flex:0 0 86px;font-size:11px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;line-height:1.6}
+.cat div{flex:1;display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-block;background:var(--soft);color:var(--ink2);border-radius:9px;padding:5px 10px;font-size:14px;line-height:1.25}
+.chip.core{background:var(--brand);color:var(--brand-ink);font-weight:500}
+.src{font-size:12.5px;color:var(--mute);margin:12px 0 0;line-height:1.5}
+.empty{color:var(--mute);font-size:15px;margin:18px 0;padding:34px 20px;text-align:center;background:var(--card);border:1px dashed var(--line);border-radius:18px}
+.paysec{background:var(--card);border-radius:18px;padding:18px;margin:8px 0 12px;box-shadow:var(--shadow)}
+.paysec h3{margin:0 0 4px;font:700 17px var(--d);letter-spacing:-.01em}
+.paysec p{margin:0 0 10px;color:var(--mute);font-size:14px}
+.paysec button{display:flex;width:100%;justify-content:space-between;gap:10px;border:0;border-top:1px solid var(--line);
+  background:none;padding:13px 0;font:500 16px/1.3 var(--f);color:var(--ink);text-align:left}
+.paysec button span{color:var(--mute);font-size:13px;font-weight:400;text-align:right}
 
-.selbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--sheet);border-top:1px solid var(--line);padding:12px 16px calc(env(safe-area-inset-bottom) + 12px);display:none;gap:8px;align-items:center;box-shadow:0 -8px 30px rgba(0,0,0,.2)}
-.selbar.on{display:flex}
-.selbar .cnt{font-weight:650;flex:1}
-.selbar button{background:var(--surface2);border-radius:11px;padding:11px 13px;font-size:14.5px}
-.selbar button.warn{color:var(--warn)}
+/* ---------- низ ---------- */
+footer{position:fixed;left:0;right:0;bottom:0;z-index:15;padding:12px 16px calc(env(safe-area-inset-bottom) + 12px);
+  background:linear-gradient(to top,var(--bg) 65%,transparent);pointer-events:none}
+.dock{max-width:760px;margin:0 auto;display:flex;gap:10px;pointer-events:auto}
+footer button{border:0;border-radius:16px;font:600 16px/1 var(--f);height:54px;padding:0 18px}
+#rep{flex:1;background:var(--brand);color:var(--brand-ink);display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 12px 26px -14px var(--brand)}
+#rep .pill{background:rgba(255,255,255,.2);padding:3px 10px;border-radius:99px;font-size:13px}
+#clr{background:var(--card);color:var(--ink2);border:1px solid var(--line)}
+.toast{position:fixed;left:50%;transform:translate(-50%,8px);bottom:calc(env(safe-area-inset-bottom) + 84px);max-width:min(460px,calc(100% - 32px));width:max-content;
+  background:var(--ink);color:var(--bg);padding:13px 18px;border-radius:14px;font-size:15px;text-align:center;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:30}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.veil{position:fixed;inset:0;z-index:40;background:rgba(5,12,10,.45);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.sheet{width:100%;max-width:520px;background:var(--card);border-radius:22px;padding:22px;margin-bottom:env(safe-area-inset-bottom);box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
+.sheet h2{font:700 19px var(--d);margin:0 0 6px;letter-spacing:-.01em}
+.sheet p{margin:0 0 16px;color:var(--ink2);font-size:15px}
+.sheet .rw{display:flex;gap:10px}
+.sheet button{flex:1;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 15px var(--f)}
+.sheet .danger{background:var(--red);border-color:var(--red);color:#fff}
 
-.sheet{position:fixed;inset:0;z-index:40;background:rgba(6,9,12,.5);display:none;align-items:flex-end;backdrop-filter:blur(2px)}
-.sheet.open{display:flex}
-.card{position:relative;background:var(--sheet);width:100%;max-height:92vh;overflow-y:auto;border-radius:24px 24px 0 0;padding:22px 18px calc(env(safe-area-inset-bottom) + 18px);animation:up .22s cubic-bezier(.2,.8,.3,1)}
-@keyframes up{from{transform:translateY(26px)}to{transform:translateY(0)}}
-@media (prefers-reduced-motion:reduce){.card{animation:none}}
-.card h2{margin:0;font-size:24px;line-height:1.18;letter-spacing:-.02em;padding-right:42px}
-.close{position:absolute;right:14px;top:18px;font-size:21px;color:var(--muted);line-height:1;padding:4px 8px}
-.line{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);font-size:15.5px}
-.line .k{color:var(--muted);flex:none;width:92px;font-size:13.5px;padding-top:1px}
-.photo{width:100%;border-radius:16px;margin:18px 0 2px;display:block;background:var(--imgbg)}
-.note-box{background:var(--surface2);border-radius:14px;padding:13px 15px;margin-top:16px;font-size:15px;white-space:pre-wrap;line-height:1.5}
-.row{display:flex;gap:8px;margin-top:10px}
-.row .btn{font-size:15.5px;padding:14px}
-.menu-item{display:flex;align-items:center;gap:13px;padding:15px 4px;border-bottom:1px solid var(--line);font-size:16px}
-.menu-item:last-child{border:none}
-.menu-item .ic{width:22px;text-align:center;color:var(--muted)}
-.menu-item.warn{color:var(--warn)}
-.field{margin-bottom:13px}
-.field label{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px;font-weight:600}
-.field input,.field textarea,.field select{width:100%;background:var(--surface2);border:none;border-radius:12px;padding:13px}
-.field textarea{min-height:78px;resize:vertical}
-.hint{font-size:12.5px;color:var(--muted);margin-top:7px;line-height:1.45}
-.mini{background:var(--surface2);border-radius:10px;padding:10px 13px;font-size:14px;margin-top:8px;display:inline-block}
-.toast{position:fixed;left:50%;bottom:112px;transform:translateX(-50%);z-index:60;background:var(--solid);color:var(--onsolid);border-radius:12px;padding:12px 16px;font-size:14.5px;opacity:0;pointer-events:none;transition:opacity .18s;max-width:90vw;display:flex;align-items:center;gap:14px;font-weight:500}
-.toast.show{opacity:1;pointer-events:auto}
-.toast button{font-weight:700;color:var(--accent);white-space:nowrap}
-.bar{border-radius:12px;padding:11px 14px;margin:0 16px 10px;font-size:13.5px;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface2)}
-.bar.admin{color:var(--accent)}
-.bar.offline{color:var(--warn)}
-.ord{display:flex;gap:6px}
-.ord button{width:38px;height:38px;border-radius:10px;background:var(--surface2);font-size:14px}
-.steps{color:var(--muted);font-size:14.5px;margin:10px 0 16px;line-height:1.7}
-.steps b{color:var(--text);font-weight:600}
-.phrow{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
-.phrow span{flex:1;min-width:0;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.phrow input{width:150px;background:var(--surface2);border:none;border-radius:10px;padding:10px}
-#map{width:100%;height:70vh;border-radius:16px;overflow:hidden;background:var(--surface2)}
-.leaflet-container{background:var(--surface2)!important;font:inherit}
-.pin{background:var(--accent);color:#12191F;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-size:12px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.3)}
-.pin.done{background:var(--ok);color:#fff}
-.pin.fail{background:var(--warn);color:#fff}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{display:none}
+  header{padding:calc(env(safe-area-inset-top) + 14px) 16px 12px}
+  main{padding:6px 16px 20px}
+  .tabs{display:flex}
+  h1{font-size:22px}
+  .big{font-size:28px}
+}
+@media (max-width:420px){
+  .num{display:none}
+  .row{padding-left:14px}
+  .quick{gap:6px;padding-right:10px}
+  .quick button{width:48px;height:48px}
+  .stats{gap:6px 14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== стиль сайта заказов ===== */
+:root{color-scheme:light;
+  --bg:#F3F5F8;--card:#FFFFFF;--soft:#EEF1F6;--line:#E1E6EE;
+  --ink:#15296A;--ink2:#4A5C8C;--mute:#8C98B8;--head:#12307E;
+  --brand:#2350E6;--brand-ink:#FFFFFF;--brand-soft:#E6ECFD;
+  --ok:#17875B;--okbg:#E2F4EC;--red:#D8412F;--redbg:#FCE9E4;
+  --pay:#2350E6;--paybg:#E6ECFD;--amb:#A86A12;--ambbg:#FFF4DE;--warn:#C2412B;--warnbg:#FCE9E4;
+  --shadow:0 1px 2px rgba(12,23,38,.04),0 8px 24px -14px rgba(12,23,38,.22);
+  --glass:rgba(243,245,248,.88);
+  --f:"Onest",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--d:var(--f)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;
+  --bg:#0A0F17;--card:#111823;--soft:#18212E;--line:#222D3C;--ink:#DCE4FF;--ink2:#A5B3D9;--mute:#7482A8;--head:#C9D6FF;
+  --brand:#6E8DFF;--brand-ink:#0A0F17;--brand-soft:#1A2547;--ok:#4CC794;--okbg:#10301F;--red:#F0766B;--redbg:#3A1D1A;
+  --pay:#8FA8FF;--paybg:#1A2547;--amb:#E6B45E;--ambbg:#33281A;--warn:#F0766B;--warnbg:#3A1D1A;
+  --shadow:0 1px 0 rgba(255,255,255,.03),0 12px 30px -14px rgba(0,0,0,.7);--glass:rgba(10,15,23,.88)}}
+:root[data-theme=dark]{color-scheme:dark;
+  --bg:#0A0F17;--card:#111823;--soft:#18212E;--line:#222D3C;--ink:#DCE4FF;--ink2:#A5B3D9;--mute:#7482A8;--head:#C9D6FF;
+  --brand:#6E8DFF;--brand-ink:#0A0F17;--brand-soft:#1A2547;--ok:#4CC794;--okbg:#10301F;--red:#F0766B;--redbg:#3A1D1A;
+  --pay:#8FA8FF;--paybg:#1A2547;--amb:#E6B45E;--ambbg:#33281A;--warn:#F0766B;--warnbg:#3A1D1A;
+  --shadow:0 1px 0 rgba(255,255,255,.03),0 12px 30px -14px rgba(0,0,0,.7);--glass:rgba(10,15,23,.88)}
+body,button,input{font-family:var(--f)!important;letter-spacing:-.005em}
+h1,.big,.logo b,.paysec h3,.sheet h2{font-family:var(--f)!important;font-weight:800!important;letter-spacing:-.035em!important;color:var(--head)}
+h1{font-size:26px}
+.big{font-size:34px;color:var(--head)}
+.row b,.hdr,.nav .t,.link b,.paysec button,.ph a.call{letter-spacing:-.02em}
+.row b,.hdr,.nav button[aria-selected=true] .t,.paysec button{color:var(--head)}
+.logo-mark{background:none;box-shadow:0 6px 14px -6px rgba(35,80,230,.6);border-radius:12px;overflow:hidden;padding:0}
+.logo-mark img{width:100%;height:100%;display:block}
+.eyebrow,.nl{font-weight:700;letter-spacing:.12em;color:color-mix(in srgb,var(--mute) 80%,var(--brand))}
+.date{background:var(--card);color:var(--head);font-weight:600;border-color:var(--line)}
+.tab[aria-selected=true],#hide[aria-pressed=true]{background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 72%,#fff),var(--brand));border-color:transparent;color:var(--brand-ink);box-shadow:0 10px 20px -12px var(--brand)}
+.nav button[aria-selected=true]{background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 72%,#fff),var(--brand));color:var(--brand-ink);box-shadow:0 12px 22px -14px var(--brand)}
+.nav button[aria-selected=true] .t,.nav button[aria-selected=true] .n,.nav button[aria-selected=true] .t small{color:var(--brand-ink)!important}
+.nav button[aria-selected=true] .ring .b{stroke:rgba(255,255,255,.3)}.nav button[aria-selected=true] .ring .o{stroke:#fff}
+.nav .n{min-width:24px;height:22px;padding:0 7px;border-radius:99px;background:var(--soft);display:grid;place-items:center;font-weight:600}
+.nav button[aria-selected=true] .n{background:rgba(255,255,255,.22)}
+.stats{background:var(--card);border-radius:20px;padding:16px 18px;box-shadow:var(--shadow)}
+.rowwrap{border-radius:20px}
+.quick button{border-radius:14px}
+#rep{background:var(--brand);box-shadow:0 14px 28px -14px var(--brand)}
+.ph a.call{background:var(--brand);color:var(--brand-ink)}
+
+/* кнопки шапки */
+.hbtn{flex:none;width:44px;height:44px;border-radius:13px;border:1px solid var(--line);background:var(--card);color:var(--head);display:grid;place-items:center}
+.hbtn svg{width:20px;height:20px}
+.top{gap:10px}
+.top .tl{flex:1;min-width:0}
+.burger{display:none}
+
+/* боковая панель на телефоне */
+.dveil{position:fixed;inset:0;z-index:49;background:rgba(6,10,18,.5);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.theme-seg{display:flex;gap:4px;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:14px}
+.theme-seg button{flex:1;height:38px;border-radius:10px;border:0;background:none;font-size:13.5px;font-weight:600;color:var(--ink2)}
+.theme-seg button[aria-pressed=true]{background:var(--brand);color:var(--brand-ink)}
+.dclose{display:none;margin-left:auto}
+@media(max-width:900px){
+  .burger{display:grid}
+  .side{display:flex!important;position:fixed;left:0;top:0;bottom:0;width:min(86vw,330px);height:auto;z-index:50;background:var(--bg);border-right:0;box-shadow:0 24px 70px -20px rgba(12,23,38,.45);transform:translateX(-105%);transition:transform .25s cubic-bezier(.2,.9,.3,1);padding-top:calc(env(safe-area-inset-top,0px) + 18px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 18px)}
+  .side.open{transform:none}
+  .dclose{display:grid}
+  .nav button{padding:11px 10px;font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){.side{transition:none}}
+[hidden]{display:none!important}
+@media (min-width:901px){footer{left:max(272px,calc((100vw - 1280px)/2 + 272px))}}
+@media (max-width:900px){header{position:static;background:none;backdrop-filter:none;-webkit-backdrop-filter:none}}
+@media(max-width:480px){.top .date{display:none}}
+
+/* ===== свайп, выбор приветствия, очередь, отчёт ===== */
+.rowwrap{position:relative}
+.rowline{position:relative;z-index:1;background:var(--card);border-radius:20px;touch-action:pan-y}
+.rowwrap::before{content:"";position:absolute;inset:0;border-radius:20px;display:flex;align-items:center;padding:0 22px;font-weight:700;font-size:15px;opacity:0}
+.rowwrap[data-sw=ok]::before{content:"✓  Взяли";background:var(--ok);color:#fff;opacity:1;justify-content:flex-start}
+.rowwrap[data-sw=no]::before{content:"Не берёт  ✕";background:var(--red);color:#fff;opacity:1;justify-content:flex-end}
+.qbtn{width:100%;margin-top:10px;height:46px;border-radius:14px;border:1px dashed color-mix(in srgb,var(--brand) 45%,var(--line));background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:8px}
+.qbtn svg{width:18px;height:18px}
+.bs{position:fixed;inset:0;z-index:60;background:rgba(6,10,18,.5);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
+.bs-c{width:100%;max-width:520px;max-height:90vh;overflow:auto;background:var(--bg);border-radius:24px 24px 0 0;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 16px);box-shadow:0 -20px 60px -20px rgba(0,0,0,.4);animation:bsup .25s cubic-bezier(.2,.9,.3,1)}
+@media(min-width:700px){.bs{align-items:center}.bs-c{border-radius:24px;padding-bottom:18px}}
+@keyframes bsup{from{transform:translateY(100%)}}
+.bs-g{width:40px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 12px}
+.bs-k{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.bs-h{font-size:21px;font-weight:800;letter-spacing:-.03em;color:var(--head);margin:4px 0 4px}
+.bs-s{font-size:14px;color:var(--ink2);margin:0 0 14px}
+.bs-o{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;font-size:15.5px;font-weight:650;color:var(--head);letter-spacing:-.015em}
+.bs-o i{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-style:normal;font-size:20px;background:var(--brand-soft)}
+.bs-o small{display:block;font-weight:500;font-size:12.5px;color:var(--mute);margin-top:2px}
+.bs-o.max i{background:linear-gradient(135deg,#3B82FF,#8A3FFC);color:#fff;font-weight:800;font-size:17px}
+.bs-row{display:flex;gap:8px;margin-top:6px}
+.bs-row button{flex:1;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:15px;color:var(--head)}
+.bs-row .ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.bs-row .no{background:var(--red);border-color:var(--red);color:#fff}
+.bs-row .pr{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.bs-bar{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin:10px 0 16px}.bs-bar i{display:block;height:100%;background:var(--brand)}
+.bs-tot{display:flex;gap:8px;margin:4px 0 14px;flex-wrap:wrap}
+.bs-tot span{font-size:13px;font-weight:700;padding:6px 11px;border-radius:99px}
+.bs-tot .a{background:var(--okbg);color:var(--ok)}.bs-tot .b{background:var(--redbg);color:var(--red)}.bs-tot .c{background:var(--soft);color:var(--ink2)}
+.bs-pre{white-space:pre-wrap;font:14px/1.55 var(--f);color:var(--head);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 12px;max-height:40vh;overflow:auto}
+.bs-chips{display:flex;gap:8px;overflow-x:auto;margin:0 -16px 12px;padding:0 16px;scrollbar-width:none}
+.bs-chips::-webkit-scrollbar{display:none}
+.bs-chips button{flex:none;height:38px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:14px;color:var(--head)}
+.bs-chips button[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.rowwrap::before{pointer-events:none;bottom:auto;height:var(--rh,100%)}.rowwrap .body{position:relative;z-index:1;background:var(--card)}.rowwrap:not([data-sw])::before{display:none}
 </style>
 </head>
 <body>
-
+<div class="app">
+<aside class="side">
+  <div class="logo"><div class="logo-mark"><img src="data:image/png;base64,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" alt=""></div><div><b>Точки КМЗ</b><span>Выездная торговля</span></div><button class="hbtn dclose" id="dclose" aria-label="Закрыть меню"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div><div class="nl">Оформление</div><div class="theme-seg"><button data-th="auto" aria-pressed="true">Авто</button><button data-th="light" aria-pressed="false">Светлая</button><button data-th="dark" aria-pressed="false">Тёмная</button></div></div>
+  <div><div class="nl">Маршруты</div><nav class="nav" id="nav1"></nav></div>
+  <div><div class="nl">Разделы</div><nav class="nav" id="nav2"></nav></div>
+  <div class="side-foot" id="sfoot"></div>
+</aside>
+<div class="col">
 <header>
-  <div class="hrow">
-    <select class="route-pick" id="routePick"></select>
-    <button class="icon-btn" id="mapBtn" title="Карта">🗺</button>
-    <button class="icon-btn" id="themeBtn" title="Тема">☾</button>
-    <button class="icon-btn" id="adminBtn" title="Редактирование">🔒</button>
+  <div class="top">
+    <button class="hbtn burger" id="burger" aria-label="Меню"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+    <div class="tl"><div class="eyebrow" id="eyebrow">Точки КМЗ</div><h1 id="ttl">Маршрут 1</h1></div>
+    <button class="hbtn" id="thbtn" aria-label="Тема"></button>
+    <span class="date" id="today"></span>
   </div>
-  <input class="search" id="search" placeholder="Поиск по всем маршрутам…" autocomplete="off">
-  <div class="tabs">
-    <button class="tab on" id="tabDay" onclick="setTab('day')">Сегодня</button>
-    <button class="tab" id="tabAll" onclick="setTab('all')">Все точки</button>
-  </div>
-</header>
-
-<div class="progress"><div class="pbar"><i id="pbar" style="width:0%"></i></div></div>
-<div class="meta" id="meta"></div>
-<div class="bar offline" id="offBar" style="display:none"><span>Нет связи — показан сохранённый маршрут</span></div>
-<div class="bar admin" id="adminBar" style="display:none">
-  <span id="adminHint">Тап — правка · ✓ — сегодня · ⋮ — действия</span>
-  <button style="color:var(--accent);font-weight:600" onclick="exitAdmin()">Выйти</button>
-</div>
-
-<main id="list"><div class="empty">Загружаю маршрут…</div></main>
-
-<div class="dock" id="dock">
-  <button class="btn" id="navBtn">
-    <svg width="24" height="16" viewBox="0 0 40 26" fill="none" aria-hidden="true">
-      <path d="M2 4.5A2.5 2.5 0 0 1 4.5 2h17A1.5 1.5 0 0 1 23 3.5V18H2V4.5Z" fill="currentColor"/>
-      <path d="M23 7h6.6c.7 0 1.3.3 1.7.9l4.9 6.4c.3.4.5.9.5 1.4V18H23V7Z" fill="currentColor"/>
-      <circle cx="10" cy="19.5" r="4.5" fill="currentColor"/><circle cx="10" cy="19.5" r="2" fill="var(--onsolid)"/>
-      <circle cx="29" cy="19.5" r="4.5" fill="currentColor"/><circle cx="29" cy="19.5" r="2" fill="var(--onsolid)"/>
-    </svg>
-    Поехали
-  </button>
-  <button class="btn ghost" id="shareBtn" title="Ссылка водителю">🔗</button>
-  <button class="btn ghost" id="menuBtn" style="display:none" title="Ещё">⋯</button>
-  <button class="btn ghost" id="addBtn" style="display:none" title="Добавить точку">＋</button>
-</div>
-
-<div class="selbar" id="selbar">
-  <span class="cnt" id="selCnt">Выбрано 0</span>
-  <button onclick="selPlan()">В план</button>
-  <button onclick="selMove()">Перенести</button>
-  <button class="warn" onclick="selDelete()">Удалить</button>
-  <button onclick="selClear()">✕</button>
-</div>
-
-<div class="sheet" id="sheet"><div class="card" id="card"></div></div>
-<div class="toast" id="toast"></div>
-
-<script>
-window.onerror=function(m,src,l){
-  var el=document.getElementById('list');
-  if(el&&el.textContent.indexOf('Загружаю')>=0){
-    el.innerHTML='<div class="empty">Не удалось открыть страницу.<br><br>'+
-      '<button class="mini" onclick="location.reload()">Обновить</button>'+
-      '<div class="hint" style="margin-top:14px">Если не помогает — очистите данные сайта в браузере.</div></div>';
-  }
-};
-const ROUTES=[{id:'1',name:'1 Краснодар'},{id:'2',name:'2 Краснодар'},{id:'3',name:'3 Краснодар'},
-{id:'4',name:'4 Краснодар'},{id:'5',name:'5 Краснодар'},{id:'6',name:'6 Побережье'}];
-const REASONS=['Закрыто','Нет денег','Отказ','Не заказывали','Не доехал'];
-
-const Q=new URLSearchParams(location.search);
-let route=Q.get('m')||'1';
-let akey=Q.get('k')||(function(){try{return localStorage.getItem('kmz_k')||''}catch(e){return''}})();
-if(Q.get('k')){try{localStorage.setItem('kmz_k',Q.get('k'))}catch(e){}}
-let myRoutes=null;
-const kq=(sep)=>akey?sep+'k='+encodeURIComponent(akey):'';
-const hdr=()=>pass?{'x-pass':pass}:{};
-let list=[], plan=null, tpl=null, st={}, visits=null;
-let admin=false, query='', offline=false, tab='day', dirty=false;
-let sel=new Set(), allRoutes=null, lastDel=null, loading=true;
-
-const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-let pass=(()=>{try{return sessionStorage.getItem('kmz_pass')||''}catch(e){return''}})();
-const setPass=v=>{pass=v;try{v?sessionStorage.setItem('kmz_pass',v):sessionStorage.removeItem('kmz_pass')}catch(e){}};
-const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-const hhmm=iso=>{try{const d=new Date(iso);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}catch(e){return''}};
-const planIds=()=>(plan&&plan.date===today())?(plan.ids||[]):null;
-const rName=id=>(ROUTES.find(r=>r.id===id)||{}).name||id;
-const photoUrl=id=>staticMode?('data/photos/'+encodeURIComponent(id)+'.jpg'):(API+'/api/photo?id='+encodeURIComponent(id));
-
-function toast(t,action){
-  const el=document.getElementById('toast');
-  el.innerHTML='<span>'+esc(t)+'</span>';
-  if(action){
-    const b=document.createElement('button');
-    b.textContent=action.label; b.onclick=()=>{el.classList.remove('show');action.fn()};
-    el.appendChild(b);
-  }
-  el.classList.add('show'); clearTimeout(el._t);
-  el._t=setTimeout(()=>el.classList.remove('show'),action?6000:2400);
-}
-
-function setTheme(t){document.documentElement.dataset.theme=t;LS.set('theme',t);
-  document.getElementById('themeBtn').textContent=t==='dark'?'☾':'☀';
-  document.querySelector('meta[name=theme-color]').content=t==='dark'?'#0E1216':'#FBFAF8'}
-setTheme(LS.get('theme')||'dark');
-document.getElementById('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
-
-/* ---------- сервер ---------- */
-/* Адрес сервера. На самом Netlify — свой же домен (пустая строка = обычный
-   относительный путь). На GitHub Pages и где угодно ещё — обращаемся
-   к серверу на Netlify напрямую, через полный адрес. */
-const API = (/netlify\.app$/.test(location.hostname) || location.hostname === 'localhost')
-  ? '' : 'https://glistening-narwhal-c13cfe.netlify.app';
-
-/* Если сервер недоступен — читаем маршруты
-   из файлов data/route-N.json, лежащих рядом в репозитории. */
-let staticMode=false;
-async function loadStatic(m){
-  const r=await fetch('data/route-'+m+'.json?v='+Date.now(),{cache:'no-store'});
-  if(!r.ok) throw new Error('нет файла маршрута');
-  return await r.json();
-}
-
-function showCached(){
-  try{
-    const c=JSON.parse(LS.get('cache_'+route)||'null');
-    if(c&&c.stops&&c.stops.length){
-      list=c.stops; plan=c.day||null; tpl=c.tpl||null;
-      if(!planIds()) tab='all';
-      render(); return true;
-    }
-  }catch(e){}
-  return false;
-}
-async function loadRoute(){
-  loading=true;
-  const hadCache=showCached();
-  try{
-    const ctl=new AbortController(); const tmo=setTimeout(()=>ctl.abort(),9000);
-    const [r,s2]=await Promise.all([
-      fetch(API+'/api/route?m='+route+kq('&'),{cache:'no-store',headers:hdr(),signal:ctl.signal}).then(x=>x.json()),
-      fetch(API+'/api/status?m='+route+'&d='+today()+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json()).catch(()=>({st:{}}))
-    ]);
-    clearTimeout(tmo);
-    if(r.error){if(!hadCache) noAccess(r.error); else{offline=true;render()} return}
-    list=r.stops||[]; plan=r.day||null; tpl=r.tpl||null; st=s2.st||{}; offline=false; visits=null;
-    LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
-  }catch(e){
-    // сервера нет — пробуем файлы репозитория
-    try{
-      const d=await loadStatic(route);
-      if(d&&d.stops){
-        staticMode=true; offline=false;
-        list=d.stops; plan=d.day||null; tpl=d.tpl||null;
-        st=readLocalStatus();
-        if(!planIds()) tab='all';
-        loading=false;
-        LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
-        render(); return;
-      }
-    }catch(_){}
-    offline=true;
-    if(!hadCache){
-      try{const c=JSON.parse(LS.get('cache_'+route)||'{}');list=c.stops||[];plan=c.day||null;tpl=c.tpl||null}catch(_){list=[];plan=null}
-    }
-    loading=false;
-    if(!list.length){
-      document.getElementById('list').innerHTML='<div class="empty">Сервер не ответил.<br><br>Проверьте интернет и обновите страницу.<br><br><button class="mini" onclick="location.reload()">Обновить</button></div>';
-      document.getElementById('meta').textContent='';
-      return;
-    }
-  }
-  if(!planIds()) tab='all';
-  loading=false;
-  render();
-}
-async function push(){
-  if(staticMode) throw new Error('Правки недоступны: сайт работает из файлов, без сервера');
-  const r=await fetch(API+'/api/route?m='+route,{method:'POST',
-    headers:{'content-type':'application/json','x-pass':pass},
-    body:JSON.stringify({stops:list,day:plan,tpl})});
-  if(!r.ok){const e=await r.json().catch(()=>({}));dirty=true;render();throw new Error(e.error||'Не сохранилось')}
-  dirty=false; allRoutes=null;
-  LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
-}
-function readLocalStatus(){
-  try{return JSON.parse(LS.get('st_'+route+'_'+today())||'{}')}catch(e){return {}}
-}
-function saveLocalStatus(){
-  try{LS.set('st_'+route+'_'+today(),JSON.stringify(st))}catch(e){}
-}
-async function setStatus(id,done,reason,clear){
-  st[id]=clear?undefined:{d:done?1:0,at:new Date().toISOString(),r:reason||''};
-  if(clear) delete st[id];
-  render();
-  saveLocalStatus();
-  if(staticMode) return;
-  try{
-    await fetch(API+'/api/status?m='+route+'&d='+today()+kq('&'),{method:'POST',
-      headers:{'content-type':'application/json'},
-      body:JSON.stringify({id,done,reason,clear})});
-  }catch(e){toast('Отметка не ушла — нет связи')}
-}
-async function loadAll(){
-  if(allRoutes) return allRoutes;
-  allRoutes={};
-  await Promise.all(ROUTES.map(async r=>{
-    try{const d=await fetch(API+'/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json());allRoutes[r.id]=d.stops||[]}
-    catch(e){allRoutes[r.id]=[]}
-  }));
-  return allRoutes;
-}
-
-function noAccess(msg){
-  list=[];plan=null;st={};loading=false;
-  document.getElementById('list').innerHTML='<div class="empty">'+esc(msg)+
-    '<br><br>Ссылка устарела — попросите новую.<br><br>'+
-    '<button class="mini" onclick="forgetKey()">Забыть старую ссылку</button> '+
-    '<button class="mini" onclick="document.getElementById(\'adminBtn\').click()">Войти по паролю</button></div>';
-  document.getElementById('meta').textContent='';
-  document.getElementById('dock').style.display='none';
-}
-function forgetKey(){
-  akey=''; myRoutes=null;
-  try{localStorage.removeItem('kmz_k')}catch(e){}
-  document.getElementById('dock').style.display='flex';
-  fillPicker(); loadRoute();
-}
-
-/* ---------- шапка ---------- */
-const pick=document.getElementById('routePick');
-function fillPicker(){
-  const avail=myRoutes?ROUTES.filter(r=>myRoutes.indexOf(r.id)>=0):ROUTES;
-  const use=avail.length?avail:ROUTES;
-  pick.innerHTML=use.map(r=>'<option value="'+r.id+'">'+r.name+'</option>').join('');
-  if(use.map(r=>r.id).indexOf(route)<0) route=use[0].id;
-  pick.value=route;
-  if(use.length<2){pick.style.pointerEvents='none';pick.style.backgroundImage='none'}
-  else {pick.style.pointerEvents='';pick.style.backgroundImage=''}
-}
-async function initRoutes(){
-  if(akey||pass){
-    try{
-      const c=new AbortController(); const t=setTimeout(()=>c.abort(),6000);
-      const d=await fetch(API+'/api/access'+kq('?'),{cache:'no-store',headers:hdr(),signal:c.signal}).then(x=>x.json());
-      clearTimeout(t);
-      if(Array.isArray(d.routes)&&d.routes.length&&d.routes.length<ROUTES.length) myRoutes=d.routes.slice().sort();
-    }catch(e){}
-  }
-  fillPicker();
-}
-pick.onchange=e=>{route=e.target.value;history.replaceState(null,'','?m='+route);selClear();
-  document.getElementById('list').innerHTML='<div class="empty">Загружаю маршрут…</div>';loadRoute()};
-let _sT=null;
-document.getElementById('search').oninput=e=>{
-  const v=e.target.value.trim().toLowerCase();
-  clearTimeout(_sT);
-  _sT=setTimeout(function(){
-    query=v; if(query) tab='all'; render();
-    if(query.length>1&&!myRoutes) loadAll().then(render);
-  },180);
-};
-function setTab(t){tab=t;render()}
-
-/* ---------- выборка ---------- */
-function ordered(){
-  const ids=planIds();
-  if(tab==='day') return ids?ids.map(id=>list.find(s=>s.id===id)).filter(Boolean):[];
-  return list.slice();
-}
-function visible(){
-  let base=ordered();
-  if(query) base=base.filter(s=>match(s,query));
-  return base.sort((a,b)=>(st[a.id]?1:0)-(st[b.id]?1:0));
-}
-const match=(s,q)=>((s.name||'')+' '+(s.addr||'')+' '+(s.note||'')+' '+(s.phone||'')).toLowerCase().includes(q);
-const canDrag=()=>admin&&!query&&!sel.size;
-
-/* ---------- отрисовка ---------- */
-function render(){
-  const ids=planIds(), vis=visible(), ord=ordered();
-  document.getElementById('tabDay').classList.toggle('on',tab==='day');
-  document.getElementById('tabAll').classList.toggle('on',tab==='all');
-  document.getElementById('tabDay').innerHTML='Сегодня'+(ids?` <span>${ids.length}</span>`:'');
-  document.getElementById('tabAll').innerHTML=`Все точки <span>${list.length}</span>`;
-
-  const inView=(tab==='day'&&ids)?ids.length:list.length;
-  const dn=ord.filter(s=>st[s.id]&&st[s.id].d).length;
-  const fl=ord.filter(s=>st[s.id]&&!st[s.id].d).length;
-  document.getElementById('pbar').style.width=inView?Math.round((dn+fl)/inView*100)+'%':'0%';
-  const noCoord=list.filter(s=>!s.lat).length;
-  document.getElementById('meta').innerHTML=`Сдано <b>${dn}</b> из <b>${inView}</b>`+
-    (fl?` · <span style="color:var(--warn)">не сдано ${fl}</span>`:'')+
-    (admin&&noCoord?` · <span style="color:var(--warn)">без координат ${noCoord}</span>`:'');
-
-  const ob=document.getElementById('offBar');
-  ob.style.display=(offline||dirty)?'flex':'none';
-  ob.firstElementChild.textContent=dirty?'Правка не ушла на сервер — проверьте связь':(staticMode?'Режим просмотра: данные из файлов':'Нет связи — показан сохранённый маршрут');
-  if(staticMode) ob.style.display='flex';
-  document.getElementById('adminHint').textContent=(tab==='day'&&ids)?'⠿ — порядок объезда на сегодня':'Тап — правка · ✓ — сегодня · ⋮ — действия';
-
-  let html=vis.length?vis.map(s=>row(s,ord.indexOf(s)+1)).join(''):
-    `<div class="empty">${(loading&&!list.length)?'Загружаю маршрут…':(query?'В этом маршруте не найдено':(tab==='day'?(ids?'На сегодня точек не отмечено':'План на сегодня не задан.<br>Все точки — на соседней вкладке.'):'В маршруте пока нет точек'))}</div>`;
-
-  if(query&&query.length>1&&allRoutes&&!myRoutes){
-    const other=[];
-    ROUTES.filter(r=>r.id!==route).forEach(r=>{
-      (allRoutes[r.id]||[]).filter(s=>match(s,query)).forEach(s=>other.push({s,r}));
-    });
-    if(other.length) html+=`<div class="gsec">В других маршрутах · ${other.length}</div>`+
-      other.map(({s,r})=>`<div class="stop" onclick="jumpTo('${r.id}','${s.id}')">
-        <div class="num">${r.id}</div>
-        <div class="sbody"><div class="sname">${esc(s.name)}</div>
-          <div class="saddr">${esc(s.addr||rName(r.id))}</div></div>
-        ${s.photo?`<img class="thumb" width="48" height="48" src="${photoUrl(s.photo)}" loading="lazy" decoding="async" onerror="this.style.display='none'" alt="">`:''}
-      </div>`).join('');
-  }
-  document.getElementById('list').innerHTML=html;
-
-  document.getElementById('addBtn').style.display=admin?'block':'none';
-  document.getElementById('menuBtn').style.display=admin?'block':'none';
-  document.getElementById('adminBar').style.display=admin?'flex':'none';
-  document.getElementById('adminBtn').classList.toggle('on',admin);
-  document.getElementById('selbar').classList.toggle('on',sel.size>0);
-  document.getElementById('dock').style.display=sel.size?'none':'flex';
-  document.getElementById('selCnt').textContent='Выбрано '+sel.size;
-  if(canDrag()) bindDrag();
-  bindLongPress();
-}
-
-function row(s,i){
-  const ids=planIds(), stt=st[s.id], inPlan=ids&&ids.includes(s.id), isSel=sel.has(s.id);
-  const cls=(stt?(stt.d?'done':'fail'):'')+(isSel?' sel':'');
-  return `<div class="stop ${cls}" data-id="${s.id}">
-    ${sel.size?`<div class="tick ${isSel?'on':''}" onclick="toggleSel('${s.id}')">${isSel?'✓':''}</div>`
-      :(admin?`<div class="tick ${inPlan?'on':''}" onclick="togglePlan('${s.id}')">${inPlan?'✓':''}</div>`
-      :`<div class="num">${stt?(stt.d?'✓':'✕'):i}</div>`)}
-    <div class="sbody" onclick="openCard('${s.id}')" data-long="${s.id}">
-      <div class="sname">${esc(s.name)}</div>
-      ${s.addr?`<div class="saddr">${esc(s.addr)}</div>`:''}
-      <div class="marks">
-        ${stt&&stt.d?`<span class="ok">сдано ${hhmm(stt.at)}</span>`:''}
-        ${stt&&!stt.d?`<span class="warn">${esc(stt.r||'не сдано')}</span>`:''}
-        ${s.note?'<span>заметка</span>':''}
-        ${admin&&!s.lat?'<span class="warn">нет координат</span>':''}${admin&&s.cs==='geo'?'<span class="warn">коорд. примерные</span>':''}
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="stats" id="stats">
+    <div class="big" id="pct">0%<small>обошёл</small></div>
+    <div>
+      <div class="sbar"><i class="ok" id="bOk"></i><i class="no" id="bNo"></i></div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--ok)"></i>Взяли <b id="cOk">0</b></span>
+        <span><i class="dot" style="background:var(--red)"></i>Не берут <b id="cNo">0</b></span>
+        <span><i class="dot" style="background:var(--line)"></i>Осталось <b id="cLeft">0</b></span>
       </div>
     </div>
-    ${s.photo?`<img class="thumb" width="48" height="48" src="${photoUrl(s.photo)}" loading="lazy" decoding="async" onerror="this.style.display='none'" alt="" onclick="openCard('${s.id}')">`:''}
-    ${admin&&!sel.size?`<div class="kebab" onclick="rowMenu('${s.id}')">⋮</div>`:''}
-    ${canDrag()?`<div class="grip" data-grip="${s.id}">⠿</div>`:''}
-  </div>`;
-}
+  </div>
+  <div class="stat" id="stat" hidden></div>
+  <div class="bar">
+    <label class="srch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Название точки или «пятница»" autocomplete="off" aria-label="Поиск"></label>
+    <button id="hide" aria-pressed="false">Без отметки</button>
+  </div>
+</header>
+<main id="list"></main>
+</div>
+</div>
+<footer><div class="dock">
+  <button id="rep">Собрать отчёт <span class="pill" id="rp"></span></button>
+  <button id="clr">Новый день</button>
+</div></footer>
+<div class="toast" id="toast"></div>
+<div class="dveil" id="dveil" hidden></div>
+<div class="veil" id="veil" hidden><div class="sheet" role="dialog" aria-modal="true">
+  <h2>Начать новый день?</h2><p>Все отметки по всем маршрутам сотрутся. Если отчёт ещё не отправлен — сначала собери его.</p>
+  <div class="rw"><button class="danger" id="clrYes">Стереть отметки</button><button id="clrNo">Отмена</button></div>
+</div></div>
+<script>
+const DATA = {"routes": [{"id": "m1", "name": "Маршрут 1", "sub": "", "cl": [{"n": "Афанасьев Железнодорожная", "p": "8 989 025 16 61", "f": [["Кефир", "2,5% 900 пакет", 0], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 0]], "t": 46, "w": ["Игорь"], "note": ""}, {"n": "Афанасьев Обрывная", "p": "8 989 025 16 61", "f": [["Кефир", "2,5% 900 пакет", 0], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 0]], "t": 36, "w": ["Игорь"], "note": ""}, {"n": "Курпитко Старокорсунская", "p": "8 961 584 48 70", "f": [["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 900 пакет", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "1% 950 бутылка", 0], ["Сметана", "20% ведро 3 кг", 1], ["Творог", "5% 5 кг", 1], ["Крем с йогуртом", "Вишня 2,5 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Масло", "Сладко-сливочное 82,5 5 кг", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 48, "w": ["Оля"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Кутков Ставропольская", "p": "в группу", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "2,5% 950 бутылка", 1], ["Молоко", "3,2% 900 пакет", 1], ["Молоко", "3,2% 950 бутылка", 1], ["Кефир", "2,5% 900 пакет", 1], ["Кефир", "2,5% 950 бутылка", 1], ["Кефир", "1% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Кисломолочное", "Снежок 2,5% 500", 0], ["Сметана", "20% 300 стакан Молодея", 1], ["Сметана", "20% 400 пакет Молодея", 1], ["Сметана", "20% 200 стакан Молодея", 1], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Творог", "5% 3 кг", 0], ["Творог", "9% 3 кг", 0], ["Творог", "9% 180 г ГОСТ", 0], ["Крем с йогуртом", "Вишня 0,5 кг", 0], ["Крем с йогуртом", "Киви 0,5 кг", 0], ["Крем с сухофруктами", "Курага 500 г", 0], ["Крем с сухофруктами", "Изюм 500 г", 0], ["Крем с сухофруктами", "Вишня 500 г", 0], ["Сыр", "Крестьянский вес", 0], ["Масло", "82,5 180 г УМ", 0], ["Масло", "72,5 в/с 180 г", 0], ["Масло", "72,5 180 г", 0]], "t": 48, "w": [], "note": "", "pay": "Вс — платёжка"}, {"n": "Кутков Ставского", "p": "в группу", "f": [["Молоко", "3,2% 900 пакет", 1], ["Молоко", "2,5% 900 пакет", 1], ["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 1], ["Кефир", "2,5% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% 300 стакан Молодея", 1], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "20% 400 пакет Молодея", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Творог", "9% 3 кг", 1], ["Творог", "9% 180 г ГОСТ", 0], ["Крем со сметаной", "Кубаночка 5 кг", 0], ["Крем с сухофруктами", "Вишня 500 г", 0], ["Крем с сухофруктами", "Курага 500 г", 0], ["Крем с сухофруктами", "Изюм 500 г", 0], ["Сыр", "Крестьянский вес", 1], ["Масло", "82,5 180 г УМ", 0], ["Масло", "72,5 в/с 180 г", 0]], "t": 48, "w": [], "note": "", "pay": "Вс — платёжка"}, {"n": "Кутков Старокорсунская", "p": "в группу", "f": [["Молоко", "3,2% 900 пакет", 1], ["Молоко", "2,5% 900 пакет", 1], ["Молоко", "2,5% 950 бутылка", 1], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 1], ["Кефир", "2,5% 950 бутылка", 1], ["Кефир", "1% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Кисломолочное", "Снежок 2,5% 500", 0], ["Сметана", "20% 300 стакан Молодея", 1], ["Сметана", "20% 200 стакан Молодея", 1], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 400 пакет Молодея", 0], ["Творог", "9% 3 кг", 0], ["Творог", "5% 3 кг ГОСТ", 0], ["Крем с сухофруктами", "Изюм 500 г", 0], ["Крем с сухофруктами", "Курага 500 г", 0], ["Сыр", "Крестьянский вес", 1], ["Масло", "82,5 180 г УМ", 0]], "t": 34, "w": [], "note": "", "pay": "Вс — платёжка"}, {"n": "Шанталий", "p": "8 961 500 59 24", "f": [["Молоко", "2,5% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Сметана", "20% ведро 3 кг", 1], ["Творог", "5% 3 кг", 1], ["Крем с творогом", "Успенский №18 4 кг", 1], ["Сыр", "Брынза вакуум", 1], ["Масло", "82,5 180 г УМ", 0]], "t": 2, "w": [""], "note": "", "fri": 1}]}, {"id": "m2", "name": "Маршрут 2", "sub": "", "cl": [{"n": "Арустамян", "p": "8 918 232 30 88\n8 918 324 11 11", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "3,2% 900 пакет", 1], ["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 1], ["Кефир", "1% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Сметана", "20% 300 стакан Молодея", 1], ["Сметана", "20% ведро 3 кг", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Творог", "5% 3 кг", 1]], "t": 48, "w": ["Лада", "продавец Мария"], "note": ""}, {"n": "Гриднев", "p": "8 928 275 33 40", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "3,2% 900 пакет", 1], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 1], ["Кефир", "2,5% 950 бутылка", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "20% 300 стакан Молодея", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Творог", "9% 3 кг ГОСТ", 0], ["Крем с творогом", "Фермерский 5 кг", 1], ["Крем с творогом", "Успенский №9 5 кг", 0], ["Сыр", "Сельский вес", 1], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0]], "t": 45, "w": ["Елена"], "note": ""}, {"n": "Джалавян Московская", "p": "8 961 850 65 13", "f": [["Молоко", "2,5% 900 пакет", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 900 пакет", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "1% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% ведро 3 кг", 0], ["Крем с творогом", "Фермерский 3 кг", 0], ["Крем с творогом", "Успенский №9 5 кг", 0], ["Крем с творогом", "Успенский №9 4 кг", 0], ["Крем со сметаной", "Кубаночка 5 кг", 0], ["Сыр", "Крестьянский вес", 0], ["Масло", "72,5 в/с 180 г", 0]], "t": 44, "w": ["Оксана"], "note": ""}, {"n": "Дубинина", "p": "8 928 255 54 95\n8 928 617 77 22", "f": [["Кефир", "1% 950 бутылка", 1], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Крем с творогом", "Фермерский 4 кг", 1], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0]], "t": 37, "w": ["", "Саша"], "note": ""}, {"n": "Дуюнова Тепличная", "p": "8 960 487 21 01\n8 952 851 89 72", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "3,2% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 1], ["Крем с творогом", "Успенский №18 4 кг", 1], ["Сыр", "Сельский вес", 1], ["Сыр", "Брынза круг ведро", 0], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 47, "w": ["продавец Елена", "продавец Юлия"], "note": "", "pay": "Вс — скинуть на оплату"}, {"n": "Дуюнова Тихая", "p": "8 962 880 66 62", "f": [["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "3,2% 900 пакет", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% ведро 3 кг", 0], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Крем с творогом", "Успенский №9 4 кг", 0], ["Сыр", "Сельский вес", 0], ["Сыр", "Брынза круг ведро", 0], ["Масло", "82,5 180 г УМ", 0], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0]], "t": 22, "w": ["Татьяна"], "note": "", "pay": "Вс — скинуть на оплату"}, {"n": "Есаян Виталий", "p": "8 989 836 42 27", "f": [["Крем с творогом", "Фермерский 3 кг", 1], ["Крем со сметаной", "Успенская Новая 5 кг", 0], ["Сыр", "Сельский вес", 0]], "t": 32, "w": [""], "note": ""}, {"n": "Есаян Регина", "p": "8 989 836 54 35", "f": [["Кисломолочное", "Йогурт клубника 3 кг", 0], ["Кисломолочное", "Йогурт вишня 3 кг", 0], ["Кисломолочное", "Йогурт персик 3 кг", 0], ["Сметана", "20% ведро 3 кг", 0], ["Крем с творогом", "Фермерский 3 кг", 1], ["Крем со сметаной", "Успенская Новая 5 кг", 0], ["Крем с йогуртом", "Клубника 2,5 кг", 0], ["Крем с йогуртом", "Киви 2,5 кг", 0], ["Крем с йогуртом", "Вишня 2,5 кг", 0], ["Крем с йогуртом", "Лесные Ягоды 2,5 кг", 0], ["Крем с йогуртом", "Персик 2,5 кг", 0], ["Крем с йогуртом", "Манго 2,5 кг", 0], ["Сыр", "Сельский вес", 0], ["Сыр", "Осетинский 1,7 кг", 0]], "t": 47, "w": ["магазин на Комарова"], "note": ""}, {"n": "Зигора", "p": "8 988 386 71 81\n8 995 225 59 02", "f": [["Молоко", "2,5% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Творог", "9% 3 кг", 1], ["Крем со сметаной", "Кубаночка 5 кг", 0], ["Сыр", "Сулугуни закупной", 0], ["Сыр", "Сулугуни КМЗ", 0], ["Сыр", "Крестьянский 300 г", 0], ["Масло", "82,5 180 г УМ", 0], ["Масло", "72,5 180 г УМ", 0]], "t": 39, "w": ["Сергей", "Тамара"], "note": ""}, {"n": "Каграманова Арбатская", "p": "8 918 343 97 64", "f": [["Молоко", "3,2% 900 пакет", 1], ["Молоко", "2,5% 900 пакет", 1], ["Кефир", "2,5% 900 пакет", 1], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% ведро 3 кг", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Крем с творогом", "Фермерский 3 кг", 0], ["Сыр", "Сулугуни закупной", 0], ["Сыр", "Сулугуни КМЗ", 0]], "t": 47, "w": ["Нонна"], "note": ""}, {"n": "Карсаева", "p": "8 918 481 63 57", "f": [["Крем с творогом", "Фермерский 4 кг", 1], ["Крем со сметаной", "Кубаночка 5 кг", 1]], "t": 17, "w": ["Татьяна Леонидовна"], "note": ""}, {"n": "Клочун", "p": "8 978 598 14 57\n8 999 480 83 81", "f": [["Сметана", "20% ведро 3 кг", 0], ["Творог", "5% 3 кг", 1], ["Крем с творогом", "Успенский №9 4 кг", 0], ["Масло", "72,5 180 г", 0]], "t": 31, "w": ["", "продавец Гульнара"], "note": "", "pay": "Вс — скинуть на оплату"}, {"n": "Курпитко Кореновск Мира", "p": "8 961 584 48 70", "f": [["Молоко", "2,5% 900 пакет", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% ведро 3 кг", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 0], ["Масло", "Сладко-сливочное 82,5 5 кг", 0]], "t": 40, "w": ["Оля"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Кореновская", "p": "8 961 584 48 70", "f": [["Молоко", "3,2% 900 пакет", 0], ["Молоко", "2,5% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Сметана", "20% ведро 3 кг", 1], ["Творог", "5% 3 кг", 1], ["Крем с йогуртом", "Малина 2,5 кг", 0], ["Крем с йогуртом", "Вишня 2,5 кг", 0], ["Крем с сухофруктами", "Вишня 3 кг", 0], ["Сыр", "Крестьянский вес", 1]], "t": 46, "w": ["Оля"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Южный", "p": "8 961 584 48 70", "f": [["Сметана", "20% ведро 3 кг", 1], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Творог", "5% 5 кг", 1], ["Сыр", "Крестьянский вес", 0], ["Масло", "82,5 180 г УМ", 0], ["Масло", "72,5 180 г УМ", 0]], "t": 26, "w": ["Оля"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Кутявина Краеведа Соловьева", "p": "8 996 410 61 17", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "3,2% 900 пакет", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 1], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Кисломолочное", "Снежок 2,5% 500", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 400 пакет Молодея", 0], ["Крем с творогом", "Фермерский 3 кг", 1], ["Масло", "82,5 180 г УМ", 0]], "t": 12, "w": ["Кравченко Марина — прежний владелец"], "note": ""}, {"n": "Кутявина Тепличная", "p": "8 996 410 61 17", "f": [["Молоко", "2,5% 950 бутылка", 1], ["Молоко", "3,2% 950 бутылка", 1], ["Молоко", "2,5% 900 пакет", 1], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Кисломолочное", "Снежок 2,5% 500", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 400 пакет Молодея", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Крем с творогом", "Фермерский 3 кг", 1], ["Масло", "72,5 в/с 180 г", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 8, "w": ["Кравченко Марина — прежний владелец"], "note": ""}, {"n": "Логвина", "p": "8 918 092 53 64", "f": [["Творог", "9% 5 кг", 0], ["Крем с творогом", "Успенский №9 4 кг", 1], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Сыр", "Крестьянский вес", 1]], "t": 30, "w": ["Татьяна"], "note": ""}, {"n": "Мамбетов", "p": "8 918 331 33 34", "f": [["Сметана", "20% ведро 3 кг", 1], ["Крем с творогом", "Успенский №9 4 кг", 1], ["Крем с творогом", "Успенский №18 4 кг", 1], ["Крем с творогом", "Фермерский 4 кг", 0], ["Крем со сметаной", "Успенская Новая 5 кг", 0]], "t": 44, "w": ["Руслан"], "note": "", "ns": 1}, {"n": "Марукян", "p": "8 918 083 81 28", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "3,2% 900 пакет", 1], ["Молоко", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 1], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "20% 300 стакан Молодея", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0]], "t": 17, "w": [""], "note": ""}, {"n": "Молов Покрышкина", "p": "8 918 481 65 57", "f": [["Крем с творогом", "Успенский №9 5 кг", 1], ["Крем с творогом", "Фермерский 5 кг", 0], ["Сыр", "Крестьянский вес", 0]], "t": 31, "w": ["Елена"], "note": ""}, {"n": "Саркисян Сережа", "p": "8 918 945 30 06", "f": [["Молоко", "3,2% 900 пакет", 1], ["Кефир", "2,5% 900 пакет", 0], ["Крем с творогом", "Фермерский 3 кг", 1], ["Крем со сметаной", "Успенская Новая 5 кг", 1], ["Сыр", "Крестьянский вес", 0], ["Сыр", "Российский Курск", 0], ["Сыр", "Сметанковый Курск", 0], ["Масло", "82,5 180 г УМ", 0], ["Спред", "72,5% 5 кг", 0]], "t": 42, "w": ["Людмила"], "note": "", "pay": "Вс — скинуть на оплату"}, {"n": "Стельмухова", "p": "8 964 891 48 98", "f": [["Крем с творогом", "Успенский №9 5 кг", 1], ["Крем с творогом", "Фермерский 5 кг", 1], ["Крем со сметаной", "Успенская Новая 5 кг", 0], ["Крем с йогуртом", "Персик 2,5 кг", 0], ["Крем с йогуртом", "Вишня 2,5 кг", 0], ["Крем с йогуртом", "Малина 2,5 кг", 0], ["Крем с йогуртом", "Клубника 2,5 кг", 0], ["Крем с йогуртом", "Лесные Ягоды 2,5 кг", 0], ["Крем с йогуртом", "Киви 2,5 кг", 0], ["Крем с йогуртом", "Манго 2,5 кг", 0], ["Сыр", "Сельский вес", 0]], "t": 34, "w": ["Галина"], "note": ""}, {"n": "Щеглов", "p": "8 918 432 10 96", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "3,2% 950 бутылка", 1], ["Кефир", "2,5% 900 пакет", 1], ["Крем с творогом", "Успенский №9 5 кг", 1], ["Крем с творогом", "Фермерский 5 кг", 1], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 48, "w": ["Елена Александровна"], "note": ""}, {"n": "Щёлокова", "p": "8 918 331 33 34", "w": [""], "note": "", "ns": 1}]}, {"id": "m3", "name": "Маршрут 3", "sub": "", "cl": [{"n": "Акопян", "p": "8 918 180 35 17", "f": [["Молоко", "2,5% 900 пакет", 1], ["Кефир", "2,5% 900 пакет", 1], ["Сметана", "20% 400 пакет Молодея", 0]], "t": 35, "w": ["номер для заявок"], "note": "", "pay": "Вс — скинуть на оплату"}, {"n": "Афанасьев 1 мая", "p": "8 989 025 16 61", "f": [["Молоко", "2,5% 900 пакет", 1], ["Кефир", "2,5% 900 пакет", 1], ["Творог", "5% 3 кг", 0]], "t": 32, "w": ["Игорь"], "note": ""}, {"n": "Афанасьев Героев Разведчиков", "p": "8 989 025 16 61", "f": [["Кефир", "2,5% 900 пакет", 1], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 0]], "t": 48, "w": ["Игорь"], "note": ""}, {"n": "Бондаренко", "p": "8 918 276 35 86", "f": [["Крем с творогом", "Фермерский 4 кг", 1], ["Крем со сметаной", "Кубаночка 5 кг", 1]], "t": 36, "w": ["Елена"], "note": ""}, {"n": "Векуа", "p": "8 977 024 95 88\n8 905 389 91 36", "f": [["Сметана", "20% ведро 3 кг", 1], ["Творог", "9% 5 кг", 1], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0], ["Масло", "Сладко-сливочное 82,5 5 кг", 0]], "t": 43, "w": ["", "продавец Галина"], "note": ""}, {"n": "Денисенко", "p": "8 961 591 56 38", "f": [["Сметана", "20% ведро 3 кг", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Крем с творогом", "Успенский №9 5 кг", 1], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Крем со сметаной", "Кубаночка 5 кг", 0], ["Крем с йогуртом", "Вишня 2,5 кг", 0], ["Крем с йогуртом", "Клубника 2,5 кг", 0], ["Крем с йогуртом", "Лесные Ягоды 2,5 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Сулугуни КМЗ", 0], ["Масло", "82,5 180 г УМ", 0], ["Масло", "72,5 в/с 180 г", 0]], "t": 16, "w": ["Ия"], "note": "", "fri": 1}, {"n": "Джалавян Зиповская", "p": "8 961 850 65 13", "f": [["Молоко", "2,5% 900 пакет", 0], ["Молоко", "3,2% 900 пакет", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% ведро 3 кг", 0], ["Крем с творогом", "Успенский №9 5 кг", 1], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Крем со сметаной", "Кубаночка 5 кг", 0], ["Сыр", "Крестьянский вес", 0]], "t": 46, "w": ["Оксана"], "note": ""}, {"n": "Карапетян Давид", "p": "8 908 683 42 48", "f": [["Молоко", "2,5% 900 пакет", 0], ["Молоко", "3,2% 900 пакет", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Сметана", "20% ведро 3 кг", 0], ["Творог", "9% 3 кг", 1], ["Творог", "5% 3 кг", 0], ["Творог", "5% 5 кг", 0]], "t": 46, "w": ["Аревик"], "note": ""}, {"n": "Кунгуров Достоевского", "p": "8 918 542 68 07", "f": [["Молоко", "2,5% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Сметана", "20% ведро 3 кг", 0], ["Крем с творогом", "Успенский №18 4 кг", 1], ["Крем со сметаной", "Успенская Новая 5 кг", 0], ["Сыр", "Крестьянский вес", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 30, "w": ["Людмила"], "note": "", "pay": "Вс — отгрузка только после оплаты"}, {"n": "Кунгуров Репина", "p": "8 900 272 11 19", "f": [["Сметана", "20% ведро 3 кг", 1], ["Крем с творогом", "Успенский №18 4 кг", 1], ["Крем со сметаной", "Успенская Новая 5 кг", 1], ["Сыр", "Сельский вес", 1]], "t": 16, "w": ["Ольга"], "note": "", "pay": "Вс — отгрузка только после оплаты", "fri": 1}, {"n": "Курпитко Героев Разведчиков", "p": "8 918 990 59 59", "f": [["Молоко", "3,2% 900 пакет", 0], ["Сметана", "20% ведро 3 кг", 1], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Творог", "5% 5 кг", 1], ["Крем с йогуртом", "Вишня 2,5 кг", 0], ["Крем с сухофруктами", "Изюм 3 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Брынза вес", 0], ["Сыр", "Сулугуни КМЗ", 0], ["Масло", "Сладко-сливочное 82,5 5 кг", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 48, "w": ["Света"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Домбайская", "p": "8 918 990 59 59", "f": [["Сметана", "20% ведро 3 кг", 0], ["Творог", "5% 3 кг", 1], ["Крем с йогуртом", "Персик 2,5 кг", 0], ["Крем с йогуртом", "Клубника 2,5 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Масло", "Сладко-сливочное 82,5 5 кг", 0]], "t": 42, "w": ["Света"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Зиповская", "p": "8 961 584 48 70", "f": [["Сметана", "20% ведро 3 кг", 1], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 0], ["Сыр", "Голландский Курск", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 25, "w": ["Оля"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Микушин Алексей Владимирович", "p": "8 989 813 10 98", "f": [["Сыр", "Крестьянский вес", 0], ["Сыр", "Сельский вес", 0]], "t": 3, "w": [""], "note": ""}, {"n": "Оводова Черкасская", "p": "8 961 500 75 82", "f": [["Молоко", "2,5% 900 пакет", 1], ["Кефир", "2,5% 900 пакет", 1], ["Крем с творогом", "Успенский №9 5 кг", 1], ["Крем с творогом", "Фермерский 5 кг", 1], ["Сыр", "Сельский вес", 1], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0]], "t": 40, "w": ["Оксана"], "note": "", "pay": "Вс — отгрузка только после оплаты"}, {"n": "Очерет Героев Разведчиков", "p": "8 918 656 50 81", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Сметана", "20% ведро 3 кг", 1], ["Сметана", "20% 300 стакан Молодея", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Творог", "9% 3 кг", 0], ["Крем с творогом", "Фермерский 3 кг", 0], ["Сыр", "Сметанковый Курск", 0], ["Сыр", "Сливочный Курск", 0]], "t": 37, "w": ["Ира"], "note": ""}, {"n": "Смирнова", "p": "8 918 272 67 80", "w": [""], "note": ""}, {"n": "Соколов Александр Викторович 40 лет Победы", "p": "8 929 842 99 68", "f": [["Молоко", "3,2% 900 пакет", 1], ["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "2,5% 900 пакет", 0], ["Кефир", "1% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% ведро 3 кг", 0], ["Сметана", "20% 400 пакет Молодея", 0], ["Творог", "5% 3 кг", 1], ["Крем с творогом", "Успенский №9 4 кг", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 44, "w": [""], "note": ""}, {"n": "Соколов Александр Викторович Героев Разведчиков", "p": "8 993 325 41 92", "f": [["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Крем с творогом", "Фермерский 4 кг", 1], ["Крем со сметаной", "Успенская Новая 5 кг", 1]], "t": 11, "w": ["Лена — только звонить"], "note": ""}, {"n": "Соколова Светлана Викторовна", "p": "8 938 507 80 58", "f": [["Крем с творогом", "Фермерский 5 кг", 1], ["Крем со сметаной", "Кубаночка 5 кг", 0], ["Крем со сметаной", "Кубаночка 750 г", 0], ["Сыр", "Сельский вес", 0]], "t": 14, "w": [""], "note": ""}, {"n": "Ступников Корякина", "p": "8 918 180 70 07", "f": [["Крем с творогом", "Фермерский 4 кг", 1], ["Крем со сметаной", "Кубаночка 5 кг", 1]], "t": 11, "w": ["Виталий"], "note": ""}, {"n": "Фабрика / Безе / Сельдерей", "p": "8 928 259 40 40", "f": [["Творог", "5% 3 кг ГОСТ", 0], ["Крем с творогом", "Фермерский 3 кг", 0], ["Крем с творогом", "Фермерский 4 кг", 0], ["Крем со сметаной", "Успенская Новая 5 кг", 1], ["Сыр", "Сельский вакуум", 0]], "t": 122, "w": ["Вячеслав"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Харцызов Промышленная", "p": "8 991 417 73 12", "f": [["Крем с творогом", "Фермерский 5 кг", 1]], "t": 31, "w": [""], "note": ""}, {"n": "Храпенкова", "p": "8 918 434 48 96", "f": [["Молоко", "2,5% 950 бутылка", 1], ["Молоко", "3,2% 950 бутылка", 1], ["Молоко", "2,5% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 1], ["Кефир", "2,5% 950 бутылка", 1], ["Кефир", "1% 950 бутылка", 1], ["Кисломолочное", "Снежок 2,5% 500", 1], ["Сметана", "20% 400 пакет Молодея", 1], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 300 стакан Молодея", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Творог", "5% 5 кг", 1], ["Крем с творогом", "Успенский №9 4 кг", 0], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Крем с творогом", "Успенский №9 5 кг", 0], ["Крем с творогом", "Фермерский 5 кг", 0], ["Крем со сметаной", "Успенская Новая 5 кг", 1], ["Крем с йогуртом", "Клубника 2,5 кг", 0], ["Крем с йогуртом", "Персик 2,5 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Сулугуни КМЗ", 0], ["Сыр", "Российский Курск", 0], ["Сыр", "Голландский Курск", 0], ["Сыр", "Сулугуни закупной", 0], ["Масло", "Сладко-сливочное 82,5 5 кг", 1], ["Масло", "82,5 180 г УМ", 0], ["Масло", "72,5 180 г УМ", 0], ["Спред", "72,5% 5 кг", 1]], "t": 16, "w": ["Люда"], "note": "", "pay": "Вс — скинуть на оплату", "fri": 1}, {"n": "Шунеева", "p": "8 918 323 95 93", "f": [["Молоко", "2,5% 900 пакет", 1], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Крем со сметаной", "Кубаночка 750 г", 0], ["Сыр", "Сметанковый Курск", 0], ["Сыр", "Сливочный Курск", 0]], "t": 22, "w": ["Оксана"], "note": ""}, {"n": "Элитколбасы Восточно-Кругликовская", "p": "8 918 351 14 88", "w": [""], "note": ""}, {"n": "Элитколбасы Генерала Трошева", "p": "8 918 351 14 88", "w": [""], "note": ""}]}, {"id": "m4", "name": "Маршрут 4", "sub": "", "cl": [{"n": "Акимов", "p": "8 918 398 90 02", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 0], ["Сметана", "20% ведро 3 кг", 1], ["Творог", "5% 3 кг ГОСТ", 1], ["Сыр", "Крестьянский вес", 0], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0]], "t": 47, "w": ["Павел"], "note": ""}, {"n": "Афанасьев Валерия Гассия", "p": "8 989 025 16 61", "f": [["Кефир", "2,5% 900 пакет", 1], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 0]], "t": 47, "w": ["Игорь"], "note": ""}, {"n": "Буна", "p": "8 989 293 38 86", "f": [["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% ведро 3 кг", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Крем с творогом", "Успенский №9 4 кг", 0], ["Сыр", "Крестьянский вакуум", 0]], "t": 28, "w": ["Людмила"], "note": ""}, {"n": "Курпитко Знаменский", "p": "8 961 584 48 70", "f": [["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "2,5% 900 пакет", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "1% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% ведро 3 кг", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Творог", "5% 3 кг", 1], ["Крем с сухофруктами", "Вишня 3 кг", 0], ["Сыр", "Крестьянский вес", 0], ["Масло", "82,5 180 г УМ", 0], ["Масло", "Сладко-сливочное 82,5 5 кг", 0]], "t": 37, "w": ["Оля"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Карасунский ВО", "p": "8 938 429 77 39", "f": [["Сыр", "Крестьянский вес", 1]], "t": 14, "w": ["заказ, производство"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Уральская", "p": "8 989 836 55 41\n8 918 172 65 36", "f": [["Молоко", "2,5% 900 пакет", 0], ["Молоко", "3,2% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Сметана", "20% 400 пакет Молодея", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Сыр", "Крестьянский 300 г", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 43, "w": ["Галя", "Марина"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Кутков Агроном", "p": "в группу", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "3,2% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Кисломолочное", "Снежок 2,5% 500", 0], ["Сметана", "20% 400 пакет Молодея", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 300 стакан Молодея", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Творог", "9% 3 кг", 0], ["Творог", "5% 3 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Масло", "72,5 180 г", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 36, "w": [], "note": "", "pay": "Вс — платёжка"}, {"n": "Чепуркова", "p": "8 938 493 46 35", "f": [["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Сметана", "20% ведро 3 кг", 0], ["Творог", "9% 3 кг", 0], ["Творог", "5% 3 кг", 0], ["Крем с йогуртом", "Вишня 2,5 кг", 0], ["Крем с йогуртом", "Киви 2,5 кг", 0], ["Крем с йогуртом", "Манго 2,5 кг", 0], ["Крем с йогуртом", "Клубника 2,5 кг", 0], ["Крем с йогуртом", "Персик 2,5 кг", 0], ["Крем с йогуртом", "Лесные Ягоды 2,5 кг", 0], ["Крем с йогуртом", "Малина 2,5 кг", 0], ["Сыр", "Брынза вакуум", 0]], "t": 20, "w": ["Кристина"], "note": ""}]}, {"id": "m5", "name": "Маршрут 5", "sub": "", "cl": [{"n": "Афанасьев Казбекская", "p": "8 989 025 16 61", "f": [["Кефир", "2,5% 900 пакет", 0], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 0]], "t": 38, "w": ["Игорь"], "note": ""}, {"n": "Еньшина Чекистов", "p": "8 918 016 21 21", "f": [["Кефир", "2,5% 900 пакет", 0], ["Крем с творогом", "Фермерский 5 кг", 1], ["Крем со сметаной", "Кубаночка 5 кг", 1], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Сулугуни закупной", 0], ["Сыр", "Сулугуни КМЗ", 0], ["Сыр", "Осетинский 1,7 кг", 0], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 48, "w": ["Олеся"], "note": "", "pay": "Вс — скинуть на оплату"}, {"n": "Курпитко Карасунская", "p": "8 918 990 59 59", "f": [["Молоко", "3,2% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% ведро 3 кг", 1], ["Творог", "5% 3 кг", 1], ["Творог", "9% 3 кг", 1], ["Крем с йогуртом", "Киви 2,5 кг", 0], ["Крем с йогуртом", "Персик 2,5 кг", 0], ["Крем с йогуртом", "Вишня 2,5 кг", 0], ["Крем с йогуртом", "Клубника 2,5 кг", 0], ["Крем с йогуртом", "Лесные Ягоды 2,5 кг", 0], ["Крем с йогуртом", "Малина 2,5 кг", 0], ["Крем с сухофруктами", "Курага 3 кг", 0], ["Крем с сухофруктами", "Вишня 3 кг", 0], ["Крем с сухофруктами", "Изюм 3 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Сливочный Курск", 0], ["Сыр", "Российский Курск", 0], ["Сыр", "Сметанковый Курск", 0], ["Сыр", "Мраморный Курск", 0], ["Сыр", "Тильзитер Курск", 0], ["Масло", "82,5 180 г УМ", 0], ["Масло", "72,5 180 г УМ", 0], ["Масло", "Сладко-сливочное 82,5 5 кг", 0]], "t": 48, "w": ["Света"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Кутков Тургенева", "p": "в группу", "f": [["Молоко", "3,2% 900 пакет", 1], ["Молоко", "2,5% 900 пакет", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 1], ["Кефир", "2,5% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% 400 пакет Молодея", 0], ["Сметана", "20% 300 стакан Молодея", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "20% ведро 3 кг", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Творог", "9% 3 кг", 1], ["Крем с сухофруктами", "Изюм 500 г", 0], ["Крем с сухофруктами", "Курага 500 г", 0], ["Сыр", "Крестьянский вакуум КРУГ", 0], ["Сыр", "Крестьянский вес", 0], ["Масло", "72,5 в/с 180 г", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 33, "w": [], "note": "", "pay": "Вс — платёжка"}, {"n": "Лопатина", "p": "8 918 293 07 88", "f": [["Молоко", "2,5% 950 бутылка", 1], ["Молоко", "3,2% 950 бутылка", 1], ["Кефир", "1% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Крем с йогуртом", "Вишня 0,5 кг", 0], ["Крем с йогуртом", "Малина 0,5 кг", 0], ["Крем с йогуртом", "Киви 0,5 кг", 0], ["Крем с йогуртом", "Манго 0,5 кг", 0], ["Крем с йогуртом", "Персик 0,5 кг", 0], ["Крем с йогуртом", "Лесные Ягоды 0,5 кг", 0], ["Крем с сухофруктами", "Вишня 500 г", 0], ["Крем с сухофруктами", "Курага 500 г", 0], ["Крем с сухофруктами", "Изюм 500 г", 0]], "t": 22, "w": ["Ульяна"], "note": ""}, {"n": "Людэ Жанна", "p": "8 953 088 94 39\n8 962 879 03 05", "f": [["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "3,2% 900 пакет", 0], ["Молоко", "2,5% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "20% 300 стакан Молодея", 0], ["Творог", "9% 180 г ГОСТ", 0], ["Крем с творогом", "Успенский №18 4 кг", 1], ["Крем со сметаной", "Успенская Новая 5 кг", 1], ["Сыр", "Сельский вес", 0], ["Сыр", "Брынза вес", 0], ["Масло", "82,5 180 г УМ", 0], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0], ["Спред", "72,5% 5 кг", 0]], "t": 47, "w": ["Наташа", ""], "note": ""}, {"n": "Молов Минская", "p": "8 918 981 77 91", "f": [["Крем с творогом", "Фермерский 5 кг", 1], ["Сыр", "Крестьянский вес", 0]], "t": 25, "w": ["Нинар"], "note": ""}, {"n": "Титаренко Диалог", "p": "8 961 500 12 44", "f": [["Творог", "9% 5 кг", 1], ["Масло", "Сладко-сливочное 82,5 5 кг", 0]], "t": 34, "w": [""], "note": ""}, {"n": "Титаренко Лерой", "p": "8 964 906 11 89", "f": [["Творог", "9% 5 кг", 1], ["Масло", "Сладко-сливочное 82,5 5 кг", 1]], "t": 32, "w": ["Шушана"], "note": ""}, {"n": "Шевчук Лузана", "p": "8 918 033 54 11\n8 928 664 59 83", "f": [["Молоко", "2,5% 900 пакет", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "20% 300 стакан Молодея", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 400 пакет Молодея", 0], ["Крем с творогом", "Успенский №9 4 кг", 0], ["Крем с творогом", "Успенский №9 5 кг", 0], ["Крем с творогом", "Фермерский 5 кг", 0], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Крем со сметаной", "Успенская Новая 5 кг", 0], ["Сыр", "Крестьянский 300 г", 0], ["Сыр", "Тильзитер Курск", 0], ["Сыр", "Нити Особый", 0], ["Сыр", "Сметанковый Курск", 0], ["Масло", "82,5 180 г УМ", 0], ["Масло", "72,5 180 г", 0], ["Масло", "72,5 в/с 180 г", 0]], "t": 40, "w": ["Лариса", "Елена"], "note": "", "pay": "Вс — платёжка"}, {"n": "Шевчук Чекистов", "p": "8 918 129 18 97\n8 918 420 32 55", "f": [["Молоко", "2,5% 900 пакет", 1], ["Молоко", "3,2% 900 пакет", 1], ["Кефир", "2,5% 900 пакет", 1], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "20% 300 стакан Молодея", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Крем с творогом", "Успенский №9 5 кг", 0], ["Крем с творогом", "Фермерский 5 кг", 0], ["Крем со сметаной", "Успенская Новая 5 кг", 1], ["Крем с йогуртом", "Вишня 0,5 кг", 0]], "t": 47, "w": ["Галина", "Лена"], "note": "", "pay": "Вс — платёжка"}]}, {"id": "sea", "name": "Побережье", "sub": "только пятница", "cl": [{"n": "Курпитко Афипский", "p": "8 918 376 83 76", "f": [["Сметана", "20% ведро 3 кг", 1], ["Сметана", "20% 300 стакан Молодея", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "20% 400 пакет Молодея", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Творог", "5% 5 кг", 1], ["Крем с йогуртом", "Клубника 2,5 кг", 0], ["Крем с йогуртом", "Лесные Ягоды 2,5 кг", 0], ["Сыр", "Крестьянский вес", 0]], "t": 15, "w": ["Анна"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Северская", "p": "8 918 376 83 76", "f": [["Молоко", "3,2% 900 пакет", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% 400 пакет Молодея", 1], ["Сметана", "20% 300 стакан Молодея", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% ведро 3 кг", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Творог", "5% 5 кг", 1], ["Творог", "9% 5 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Брынза круг ведро", 0]], "t": 13, "w": ["Анна"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Абинск", "p": "8 918 376 83 76", "f": [["Сметана", "20% 180 стакан УМ", 1], ["Сметана", "20% 300 стакан УМ", 1], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 1], ["Масло", "Сладко-сливочное 82,5 5 кг", 1]], "t": 1, "w": ["Анна"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Варениковская", "p": "8 918 376 83 76", "f": [["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "2,5% 900 пакет", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 900 пакет", 0], ["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% ведро 3 кг", 0], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Сливочный Курск", 0], ["Сыр", "Сулугуни КМЗ", 0], ["Сыр", "Тильзитер Курск", 0], ["Сыр", "Сметанковый Курск", 0], ["Масло", "Сладко-сливочное 82,5 5 кг", 0]], "t": 8, "w": ["Анна"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Крымск", "p": "8 918 376 83 76", "f": [["Сметана", "20% ведро 3 кг", 1], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 0], ["Сыр", "Брынза круг ведро", 0], ["Масло", "Сладко-сливочное 82,5 5 кг", 0]], "t": 16, "w": ["Анна"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Новороссийск Сипягина", "p": "8 918 376 83 76", "f": [["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Сметана", "20% ведро 3 кг", 1], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Российский Курск", 0], ["Сыр", "Сливочный Курск", 0], ["Сыр", "Тильзитер Курск", 0], ["Масло", "72,5 в/с 180 г", 0]], "t": 14, "w": ["Анна"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Новороссийск Пионерская", "p": "8 918 376 83 76", "f": [["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Сметана", "20% ведро 3 кг", 1], ["Сметана", "20% 180 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "15% 300 стакан Молодея", 0], ["Сметана", "20% 200 стакан Молодея", 0], ["Творог", "5% 3 кг", 1], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Брынза вес", 0], ["Сыр", "Тильзитер Курск", 0], ["Сыр", "Сливочный Курск", 0], ["Сыр", "Мраморный Курск", 0], ["Сыр", "Голландский Курск", 0], ["Сыр", "Сметанковый Курск", 0], ["Масло", "Сладко-сливочное 82,5 5 кг", 0]], "t": 17, "w": ["Анна"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Темрюк Ленина", "p": "8 938 403 20 91", "f": [["Молоко", "2,5% 950 бутылка", 0], ["Молоко", "3,2% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Творог", "5% 5 кг", 1], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Сулугуни КМЗ", 0]], "t": 16, "w": ["Анастасия"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Темрюк 27 Сентября", "p": "8 938 403 20 91", "f": [["Молоко", "2,5% 900 пакет", 1], ["Кефир", "2,5% 950 бутылка", 1], ["Кефир", "1% 950 бутылка", 1], ["Кефир", "2,5% 900 пакет", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 180 стакан УМ", 0], ["Творог", "9% 5 кг", 0], ["Творог", "9% 3 кг", 0], ["Творог", "5% 3 кг", 0], ["Творог", "5% 5 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Брынза вакуум", 0], ["Масло", "72,5 в/с 180 г", 0], ["Масло", "72,5 180 г УМ", 0], ["Масло", "82,5 180 г УМ", 0]], "t": 16, "w": ["Анастасия"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Анапа Красноармейская", "p": "8 938 403 20 91", "f": [["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Творог", "5% 5 кг", 1], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Сулугуни КМЗ", 0]], "t": 15, "w": ["Анастасия"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Анапа Парковая", "p": "8 938 403 20 91", "f": [["Молоко", "3,2% 950 бутылка", 0], ["Молоко", "2,5% 950 бутылка", 0], ["Кефир", "2,5% 950 бутылка", 0], ["Кефир", "1% 950 бутылка", 0], ["Творог", "5% 5 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Сулугуни КМЗ", 0]], "t": 14, "w": ["Анастасия"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Анапская Мира", "p": "8 938 403 20 91", "f": [["Молоко", "3,2% 950 бутылка", 1], ["Кефир", "2,5% 950 бутылка", 0], ["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Творог", "5% 5 кг", 1], ["Крем с творогом", "Успенский №18 4 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Брынза вес", 0], ["Сыр", "Сулугуни КМЗ", 0]], "t": 14, "w": ["Анастасия"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}, {"n": "Курпитко Супсех", "p": "8 938 403 20 91", "f": [["Сметана", "15% 300 стакан УМ", 0], ["Сметана", "20% 300 стакан УМ", 0], ["Творог", "5% 5 кг", 0], ["Творог", "5% 3 кг", 0], ["Сыр", "Крестьянский вес", 1], ["Сыр", "Сулугуни КМЗ", 0]], "t": 16, "w": ["Анастасия"], "note": "", "pay": "Акт сверки в ЭДО каждый месяц"}]}, {"id": "etc", "name": "Разовые", "sub": "", "cl": [{"n": "Галай", "p": "", "w": [], "t": 4, "r0": "Маршрут 3", "f": [["Сыр", "Сельский вакуум", 1]], "note": ""}, {"n": "Киракосова", "p": "8 900 264 40 82", "w": [""], "t": 14, "r0": "Маршрут 4", "f": [["Молоко", "2,5% 900 пакет", 0], ["Молоко", "3,2% 900 пакет", 0], ["Кефир", "2,5% 900 пакет", 0], ["Сыр", "Сельский вакуум", 0], ["Сыр", "Крестьянский вакуум КРУГ", 0], ["Масло", "82,5 180 г УМ", 0]], "note": ""}, {"n": "Кондрахина", "p": "", "w": [], "t": 6, "r0": "Ладожская", "f": [["Кисломолочное", "Ряженка 2,5% 450", 0], ["Сыр", "Сельский вес", 1], ["Спред", "72,5% 5 кг", 1]], "note": ""}, {"n": "Махов", "p": "8 960 472 85 81", "w": [""], "t": 7, "r0": "Маршрут 2", "f": [["Крем с творогом", "Фермерский 5 кг", 0], ["Крем со сметаной", "Успенская Новая 5 кг", 1]], "note": ""}, {"n": "Молов Ставропольская", "p": "", "w": [], "t": 7, "r0": "Маршрут 1", "f": [["Крем с творогом", "Фермерский 5 кг", 0]], "note": ""}, {"n": "Молов Яркая", "p": "", "w": [], "t": 8, "r0": "Маршрут 5", "f": [["Крем с творогом", "Успенский №18 4 кг", 0], ["Крем с творогом", "Фермерский 5 кг", 0]], "note": ""}, {"n": "Петроченко", "p": "8 960 486 46 96", "w": [""], "t": 4, "r0": "Маршрут 4", "f": [["Кефир", "2,5% 900 пакет", 1]], "note": ""}, {"n": "Садоян", "p": "8 918 996 36 47", "f": [["Крем с творогом", "Фермерский 5 кг", 1], ["Крем со сметаной", "Кубаночка 5 кг", 0]], "t": 12, "w": [""], "note": "", "r0": "Маршрут 2"}, {"n": "Саркисян Индустриальный", "p": "8 928 281 48 23", "w": [""], "t": 7, "r0": "Маршрут 2", "f": [["Крем с творогом", "Фермерский 3 кг", 1]], "note": ""}, {"n": "Храм Пашковский", "p": "", "w": [], "t": 6, "r0": "Маршрут 4", "f": [["Молоко", "3,2% 900 пакет", 1], ["Творог", "9% 5 кг", 0], ["Масло", "Крестьянское 72,5 в/с 5 кг", 0]], "note": ""}]}]};
+const $ = s => document.querySelector(s);
+const KEY = 'kmz_misha_v1';
+const ST = {ok:'принял', no:'не берёт'};
+const ICON = {ok:'✅', no:'❌'};
+const MSG = 'Здравствуйте! По заявке на завтра';
 
-async function jumpTo(r,id){
-  route=r; pick.value=r; history.replaceState(null,'','?m='+r);
-  document.getElementById('search').value=''; query=''; tab='all';
-  await loadRoute(); openCard(id);
+function todayStr(){
+  const d = new Date();
+  return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
 }
+let state = {date: todayStr(), marks:{}};
+try{ const raw = JSON.parse(localStorage.getItem(KEY)||'null'); if(raw && raw.date === todayStr()) state = raw; }catch(e){}
+const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} };
 
-/* ---------- выделение нескольких ---------- */
-function toggleSel(id){sel.has(id)?sel.delete(id):sel.add(id);render()}
-function selClear(){sel.clear();render()}
-async function selPlan(){
-  if(!plan||plan.date!==today()) plan={date:today(),ids:[]};
-  sel.forEach(id=>{if(!plan.ids.includes(id)) plan.ids.push(id)});
-  const n=sel.size; selClear();
-  try{await push();toast('В план добавлено: '+n)}catch(e){toast(e.message)}
-}
-async function selDelete(){
-  if(!confirm('Удалить выбранных точек: '+sel.size+'?')) return;
-  const back=list.slice(), backPlan=plan?JSON.parse(JSON.stringify(plan)):null;
-  list=list.filter(s=>!sel.has(s.id));
-  if(plan&&plan.ids) plan.ids=plan.ids.filter(id=>!sel.has(id));
-  const n=sel.size; selClear();
-  try{await push();toast('Удалено: '+n,{label:'Вернуть',fn:async()=>{list=back;plan=backPlan;try{await push();render();toast('Возвращено')}catch(e){toast(e.message)}}})}
-  catch(e){list=back;plan=backPlan;render();toast(e.message)}
-}
-function moveOne(id){sel.clear();sel.add(id);selMove()}
-function selMove(){
-  const ids=[...sel];
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Перенести ${ids.length} точек</h2>
-    <div class="field" style="margin-top:18px"><label>В какой маршрут</label>
-      <select id="f_to">${ROUTES.filter(r=>r.id!==route).map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</select></div>
-    <div class="row"><button class="btn flat" onclick="doBulkMove('copy')">Скопировать</button>
-      <button class="btn accent" onclick="doBulkMove('move')">Перенести</button></div>`;
-  document.getElementById('sheet').classList.add('open');
-}
-async function doBulkMove(mode){
-  const to=document.getElementById('f_to').value, ids=[...sel];
-  try{
-    const d=await fetch(API+'/api/route?m='+to+kq('&'),{cache:'no-store',headers:hdr()}).then(r=>r.json());
-    const arr=d.stops||[];
-    ids.forEach((id,i)=>{const s=list.find(x=>x.id===id);if(s) arr.push({...s,id:'c'+Date.now().toString(36)+i})});
-    const w=await fetch(API+'/api/route?m='+to,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
-      body:JSON.stringify({stops:arr,day:d.day||null,tpl:d.tpl||null})});
-    if(!w.ok) throw new Error('Не записалось');
-    if(mode==='move'){
-      list=list.filter(s=>!sel.has(s.id));
-      if(plan&&plan.ids) plan.ids=plan.ids.filter(id=>!sel.has(id));
-      await push();
-    }
-    const n=ids.length; selClear(); closeSheet();
-    toast((mode==='move'?'Перенесено: ':'Скопировано: ')+n+' → '+rName(to));
-  }catch(e){toast(e.message)}
-}
+let tab = DATA.routes[0].id, openName = null, openPos = null, query = '', hideDone = false;
+const openRoutes = new Set();
+$('#today').textContent = todayStr();
 
-/* ---------- меню строки ---------- */
-function rowMenu(id){
-  const s=list.find(x=>x.id===id); if(!s) return;
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>${esc(s.name)}</h2>
-    <div style="margin-top:16px">
-      <div class="menu-item" onclick="closeSheet();openEdit('${id}')"><span class="ic">✎</span>Изменить</div>
-      <div class="menu-item" onclick="quickName('${id}')"><span class="ic">Aa</span>Переименовать</div>
-      <div class="menu-item" onclick="quickPhone('${id}')"><span class="ic">📞</span>Вписать телефон</div>
-      <div class="menu-item" onclick="dupStop('${id}')"><span class="ic">⧉</span>Дублировать</div>
-      <div class="menu-item" onclick="moveOne('${id}')"><span class="ic">→</span>В другой маршрут</div>
-      <div class="menu-item" onclick="closeSheet();history_('${id}')"><span class="ic">🕘</span>История посещений</div>
-      <div class="menu-item warn" onclick="delStop('${id}')"><span class="ic">🗑</span>Удалить точку</div>
-    </div>`;
-  document.getElementById('sheet').classList.add('open');
-}
-function quickName(id){
-  const s=list.find(x=>x.id===id);
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Название</h2><div class="field" style="margin-top:18px">
-    <input id="q_val" value="${esc(s.name)}"></div>
-    <div class="row"><button class="btn accent" onclick="saveQuick('${id}','name')">Сохранить</button></div>`;
-  setTimeout(()=>document.getElementById('q_val').focus(),120);
-}
-function quickPhone(id){
-  const s=list.find(x=>x.id===id);
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Телефон точки</h2><div class="field" style="margin-top:18px">
-    <input id="q_val" inputmode="tel" placeholder="+7…" value="${esc(s.phone)}"></div>
-    <div class="row"><button class="btn accent" onclick="saveQuick('${id}','phone')">Сохранить</button></div>`;
-  setTimeout(()=>document.getElementById('q_val').focus(),120);
-}
-async function saveQuick(id,field){
-  const s=list.find(x=>x.id===id); if(!s) return;
-  s[field]=document.getElementById('q_val').value.trim();
-  render(); closeSheet();
-  try{await push();toast('Сохранено')}catch(e){toast(e.message)}
-}
-async function dupStop(id){
-  const s=list.find(x=>x.id===id); if(!s) return;
-  const copy={...s,id:'d'+Date.now().toString(36),name:s.name+' (копия)',photo:s.photo};
-  list.splice(list.indexOf(s)+1,0,copy);
-  render(); closeSheet();
-  try{await push();toast('Дубль создан')}catch(e){toast(e.message)}
-}
-async function history_(id){
-  const s=list.find(x=>x.id===id);
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>${esc(s.name)}</h2><div class="steps">Загружаю историю…</div>`;
-  document.getElementById('sheet').classList.add('open');
-  if(!visits){try{visits=(await fetch(API+'/api/visits?m='+route).then(r=>r.json())).v||{}}catch(e){visits={}}}
-  const v=(visits[id]||[]).slice().reverse();
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>${esc(s.name)}</h2>
-    <div class="steps">${v.length?v.map(x=>`<b>${x.day}</b> — ${x.ok?'сдано':'не сдано'+(x.r?': '+esc(x.r):'')}`).join('<br>'):'Посещений пока не отмечено.'}</div>`;
-}
+const ALL = DATA.routes.flatMap(r => r.cl.map(c => ({...c, rid:r.id, rn:r.name})));
+const MAIN = ALL.filter(c => c.rid !== 'etc');
+const norm = s => String(s).toLowerCase().replace(/ё/g,'е');
+const isFri = c => c.fri || c.rid === 'sea';
+const phoneKey = c => (!c.p || c.ns) ? '' : c.p.includes('групп') ? 'группа' : (c.p.split('\n')[0].match(/\d/g)||[]).join('').slice(-10);
+const GROUPS = {};
+for(const c of ALL){ const k = phoneKey(c); if(k.length >= 10 || k === 'группа') (GROUPS[k] = GROUPS[k] || []).push(c); }
+const siblings = c => { const k = phoneKey(c); return k ? (GROUPS[k]||[]).filter(x => x.n !== c.n) : []; };
 
-/* ---------- карточка ---------- */
-function openCard(id){
-  const el=document.querySelector('[data-long="'+id+'"]');
-  if(el&&el._skip){el._skip=false;return}
-  const s=list.find(x=>x.id===id); if(!s) return;
-  if(sel.size){toggleSel(id);return}
-  if(admin){openEdit(id);return}
-  const stt=st[id];
-  document.getElementById('card').innerHTML=`
-    <button class="close" onclick="closeSheet()">✕</button>
-    <h2>${esc(s.name)}</h2>
-    ${s.addr?`<div class="line"><span class="k">Адрес</span><span>${esc(s.addr)}</span></div>`:''}
-    ${s.hours?`<div class="line"><span class="k">Работает</span><span>${esc(s.hours)}</span></div>`:''}
-    ${s.phone?`<div class="line"><span class="k">Телефон</span><span>${esc(s.phone)}</span></div>`:''}
-    ${stt?`<div class="line"><span class="k">Отмечено</span><span>${stt.d?'сдано':'не сдано'+(stt.r?' · '+esc(stt.r):'')} в ${hhmm(stt.at)}</span></div>`:''}
-    ${s.note?`<div class="note-box">${esc(s.note)}</div>`:''}
-    ${s.photo?`<img class="photo" src="${photoUrl(s.photo)}" alt="">`:''}
-    <div class="row">
-      ${(s.url||s.lat)?`<a class="btn" target="_blank" rel="noopener" href="${s.url?esc(s.url):`https://yandex.ru/maps/?rtext=~${s.lat},${s.lon}&rtt=auto`}">Поехали</a>`:''}
-      ${s.phone?`<a class="btn flat" href="tel:${esc(s.phone).replace(/[^\d+]/g,'')}">Позвонить 📞</a>`:(s.url2?`<a class="btn flat" target="_blank" rel="noopener" href="${esc(s.url2)}">2ГИС</a>`:'')}
-    </div>
-    ${stt?`<div class="row"><button class="btn flat" onclick="setStatus('${id}',0,'',true);closeSheet()">Снять отметку</button></div>`
-    :`<div class="row"><button class="btn good" onclick="setStatus('${id}',1);closeSheet()">Доставлено ✓</button></div>
-      <div class="row"><button class="btn danger" onclick="failCard('${id}')">Не сдал</button></div>`}`;
-  document.getElementById('sheet').classList.add('open');
-}
-function failCard(id){
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Почему не сдал?</h2><div style="margin-top:16px">
-    ${REASONS.map(r=>`<div class="menu-item" onclick="setStatus('${id}',0,'${r}');closeSheet()"><span class="ic">•</span>${r}</div>`).join('')}
-    </div>`;
-}
-const closeSheet=()=>document.getElementById('sheet').classList.remove('open');
-document.getElementById('sheet').onclick=e=>{if(e.target.id==='sheet'){closeSheet();if(sel.size===1){sel.clear();render()}}};
+const TABS = [...DATA.routes.filter(r => r.id !== 'etc'),
+  {id:'all', name:'Все точки', sub:'', cl: MAIN},
+  {id:'pay', name:'Оплаты', sub:'', cl: []},
+  ...DATA.routes.filter(r => r.id === 'etc')];
 
-async function togglePlan(id){
-  if(!plan||plan.date!==today()) plan={date:today(),ids:[]};
-  const i=plan.ids.indexOf(id); i<0?plan.ids.push(id):plan.ids.splice(i,1);
-  render();
-  try{await push()}catch(e){toast(e.message)}
-}
+const mark = n => state.marks[n] || {};
+const cid = s => s.replace(/[^a-zа-яё0-9]/gi,'');
+const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
-function bindLongPress(){
-  const els=document.querySelectorAll('[data-long]');
-  for(let i=0;i<els.length;i++){
-    (function(el){
-      let timer=null, moved=false, x0=0, y0=0;
-      const start=function(ev){
-        const t=(ev.touches&&ev.touches[0])||ev;
-        x0=t.clientX; y0=t.clientY; moved=false;
-        clearTimeout(timer);
-        timer=setTimeout(function(){ if(!moved){ el._skip=true; toggleSel(el.getAttribute('data-long')); } },550);
-      };
-      const move=function(ev){
-        const t=(ev.touches&&ev.touches[0])||ev;
-        if(Math.abs(t.clientX-x0)>10||Math.abs(t.clientY-y0)>10){moved=true;clearTimeout(timer)}
-      };
-      const end=function(){clearTimeout(timer)};
-      el.addEventListener('touchstart',start,{passive:true});
-      el.addEventListener('touchmove',move,{passive:true});
-      el.addEventListener('touchend',end);
-      el.addEventListener('touchcancel',end);
-      el.addEventListener('mousedown',start);
-      el.addEventListener('mousemove',move);
-      el.addEventListener('mouseup',end);
-      el.addEventListener('mouseleave',end);
-    })(els[i]);
+function clients(){
+  if(query.trim()){
+    const q = norm(query.trim());
+    if(q.length >= 3 && 'пятница'.startsWith(q)) return ALL.filter(isFri).map(c => ({...c, r:c.rn}));
+    return ALL.filter(c => norm(c.n).includes(q)).map(c => ({...c, r:c.rn}));
   }
-}
-
-/* ---------- перетаскивание ---------- */
-function bindDrag(){
-  const hasPointer=('onpointerdown' in window);
-  const P=t=>(t&&t.touches&&t.touches[0])?t.touches[0]:t;
-  document.querySelectorAll('.grip').forEach(g=>{
-    const begin=e0=>{
-      if(e0.preventDefault&&e0.cancelable) e0.preventDefault();
-      const e=P(e0);
-      const items=[...document.querySelectorAll('.stop')];
-      const el=g.closest('.stop'), from=items.indexOf(el);
-      const h=el.getBoundingClientRect().height+8;
-      const startY=e.clientY; let to=from;
-      el.classList.add('drag');
-      if(hasPointer&&e0.pointerId!==undefined){try{g.setPointerCapture(e0.pointerId)}catch(err){}}
-      const move=ev0=>{
-        if(ev0.cancelable&&ev0.preventDefault) ev0.preventDefault();
-        const ev=P(ev0);
-        if(ev.clientY>innerHeight-110) scrollBy(0,12);
-        else if(ev.clientY<130) scrollBy(0,-12);
-        const dy=ev.clientY-startY;
-        el.style.transform=`translateY(${dy}px) scale(1.02)`;
-        const nt=Math.max(0,Math.min(items.length-1,from+Math.round(dy/h)));
-        if(nt!==to){
-          to=nt;
-          items.forEach((it,i)=>{
-            if(it===el) return;
-            it.classList.add('shift');
-            let sh=0;
-            if(from<to&&i>from&&i<=to) sh=-h;
-            if(from>to&&i>=to&&i<from) sh=h;
-            it.style.transform=`translateY(${sh}px)`;
-          });
-        }
-      };
-      const up=async()=>{
-        document.removeEventListener('pointermove',move);
-        document.removeEventListener('pointerup',up);
-        document.removeEventListener('touchmove',move);
-        document.removeEventListener('touchend',up);
-        items.forEach(it=>{it.style.transform='';it.classList.remove('shift','drag')});
-        if(to!==from) await applyOrder(from,to); else render();
-      };
-      if(hasPointer){
-        document.addEventListener('pointermove',move);
-        document.addEventListener('pointerup',up);
-      }else{
-        document.addEventListener('touchmove',move,{passive:false});
-        document.addEventListener('touchend',up);
-      }
-    };
-    if(hasPointer) g.onpointerdown=begin; else g.ontouchstart=begin;
-  });
-}
-async function applyOrder(from,to){
-  const vis=visible().map(s=>s.id);
-  if(tab==='day'&&planIds()){
-    const arr=plan.ids.slice();
-    const a=arr.indexOf(vis[from]), b=arr.indexOf(vis[to]);
-    arr.splice(b,0,arr.splice(a,1)[0]); plan.ids=arr;
-  }else{
-    const a=list.findIndex(s=>s.id===vis[from]), b=list.findIndex(s=>s.id===vis[to]);
-    list.splice(b,0,list.splice(a,1)[0]);
-  }
-  render();
-  try{await push();toast('Порядок сохранён')}catch(e){toast(e.message)}
-}
-
-/* ---------- редактирование ---------- */
-function openEdit(id){
-  const s=id?list.find(x=>x.id===id):{id:'',name:'',addr:'',url:'',url2:'',phone:'',hours:'',note:'',photo:'',lat:null};
-  if(!s) return;
-  document.getElementById('card').innerHTML=editForm(s);
-  document.getElementById('sheet').classList.add('open');
-}
-function editForm(s){
-  const i=list.indexOf(s);
-  return `<button class="close" onclick="closeSheet()">✕</button>
-  <h2 style="margin-bottom:18px">${s.id?'Точка':'Новая точка'}</h2>
-  <div class="field"><label>Название</label><input id="f_name" value="${esc(s.name)}"></div>
-  <div class="field"><label>Адрес</label><input id="f_addr" value="${esc(s.addr)}"></div>
-  <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(s.phone)}" inputmode="tel"></div>
-  <div class="field"><label>Режим работы</label><input id="f_hours" value="${esc(s.hours)}" placeholder="8:00–20:00"></div>
-  <div class="field"><label>Заметка водителю</label><textarea id="f_note">${esc(s.note)}</textarea></div>
-  <div class="field"><label>Ссылка на Яндекс.Карты</label><input id="f_url" value="${esc(s.url)}"></div>
-  <div class="field"><label>Ссылка на 2ГИС</label><input id="f_url2" value="${esc(s.url2||'')}"></div>
-  <div class="field"><label>Координаты</label>
-    <input id="f_coord" value="${s.lat?s.lat+', '+s.lon:''}" placeholder="45.035, 38.975">
-    <button class="mini" onclick="grabGPS()">📍 Взять с GPS — я на точке</button></div>
-  <div class="field"><label>Фото точки</label><input type="file" id="f_photo" accept="image/*"></div>
-  ${s.photo?`<img class="photo" src="${photoUrl(s.photo)}">`:''}
-  ${s.id?`<div class="field" style="margin-top:16px"><label>Место в списке</label>
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="ord"><button onclick="move('${s.id}',-1)">↑</button><button onclick="move('${s.id}',1)">↓</button></div>
-      <span style="color:var(--muted);font-size:14px">${i+1} из ${list.length}</span>
-    </div></div>`:''}
-  <div class="row"><button class="btn accent" onclick="saveStop('${s.id}')">Сохранить</button></div>
-  ${s.id?`<div class="row"><button class="btn danger" onclick="delStop('${s.id}')">Удалить точку</button></div>`:''}`;
-}
-function grabGPS(){
-  if(!navigator||!navigator.geolocation){toast('Телефон не отдаёт геопозицию');return}
-  toast('Определяю…');
-  navigator.geolocation.getCurrentPosition(
-    p=>{document.getElementById('f_coord').value=p.coords.latitude.toFixed(6)+', '+p.coords.longitude.toFixed(6);
-      const a=Math.round(p.coords.accuracy||0);
-      toast(a>60?`Записано, но точность ±${a} м — лучше повторить у входа`:'Координаты записаны · ±'+a+' м')},
-    ()=>toast('Не вышло — разрешите доступ к геопозиции'),{enableHighAccuracy:true,timeout:10000});
-}
-function parseCoord(v){
-  v=(v||'').trim(); if(!v) return null;
-  let m=v.match(/(?:ll|pt)=(-?\d+\.\d+)(?:,|%2C)(-?\d+\.\d+)/);
-  if(m) return [parseFloat(m[2]),parseFloat(m[1])];
-  m=v.match(/(-?\d+\.\d+)\s*[, ]\s*(-?\d+\.\d+)/);
-  if(m) return [parseFloat(m[1]),parseFloat(m[2])];
-  return null;
-}
-async function saveStop(id){
-  let s=id?list.find(x=>x.id===id):null, isNew=!s;
-  if(isNew) s={id:'p'+Date.now().toString(36)};
-  const name=document.getElementById('f_name').value.trim();
-  if(!name){toast('Впишите название');return}
-  s.name=name;
-  s.addr=document.getElementById('f_addr').value.trim();
-  s.url=document.getElementById('f_url').value.trim();
-  s.url2=document.getElementById('f_url2').value.trim();
-  s.phone=document.getElementById('f_phone').value.trim();
-  s.hours=document.getElementById('f_hours').value.trim();
-  s.note=document.getElementById('f_note').value.trim();
-  const c=parseCoord(document.getElementById('f_coord').value);
-  s.lat=c?c[0]:null; s.lon=c?c[1]:null; if(c) s.cs='manual';
-  const file=document.getElementById('f_photo').files[0];
-  try{
-    if(file){toast('Загружаю фото…');const old=s.photo;s.photo=await uploadPhoto(file);
-      if(old) fetch(API+'/api/photo?id='+encodeURIComponent(old),{method:'DELETE',headers:{'x-pass':pass}}).catch(()=>{})}
-    if(isNew) list.push(s);
-    await push(); render(); closeSheet(); toast('Сохранено');
-  }catch(e){toast(e.message)}
-}
-function uploadPhoto(file){
-  return new Promise((res,rej)=>{
-    const fr=new FileReader();
-    fr.onload=()=>{
-      const img=new Image();
-      img.onload=async()=>{
-        const k=Math.min(1,1000/Math.max(img.width,img.height));
-        const c=document.createElement('canvas');
-        c.width=img.width*k;c.height=img.height*k;
-        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-        try{
-          const r=await fetch(API+'/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
-            body:JSON.stringify({data:c.toDataURL('image/jpeg',.72)})});
-          const d=await r.json(); d.id?res(d.id):rej(new Error(d.error||'Фото не загрузилось'));
-        }catch(e){rej(new Error('Фото не загрузилось — проверьте связь'))}
-      };
-      img.onerror=()=>rej(new Error('Не читается файл'));
-      img.src=fr.result;
-    };
-    fr.readAsDataURL(file);
-  });
-}
-async function delStop(id){
-  const s=list.find(x=>x.id===id); if(!s) return;
-  const idx=list.indexOf(s), backPlan=plan?JSON.parse(JSON.stringify(plan)):null;
-  list.splice(idx,1);
-  if(plan&&plan.ids) plan.ids=plan.ids.filter(x=>x!==id);
-  render(); closeSheet();
-  try{
-    await push();
-    toast('Удалено: '+s.name,{label:'Вернуть',fn:async()=>{
-      list.splice(idx,0,s); plan=backPlan;
-      try{await push();render();toast('Точка возвращена')}catch(e){toast(e.message)}
-    }});
-  }catch(e){list.splice(idx,0,s);plan=backPlan;render();toast(e.message)}
-}
-async function move(id,d){
-  const i=list.findIndex(x=>x.id===id); if(i<0) return;
-  const j=i+d; if(j<0||j>=list.length) return;
-  [list[i],list[j]]=[list[j],list[i]];
-  try{await push();render();closeSheet();toast('Порядок изменён')}catch(e){toast(e.message)}
-}
-document.getElementById('addBtn').onclick=()=>openEdit('');
-
-/* ---------- меню админа ---------- */
-document.getElementById('menuBtn').onclick=()=>{
-  const ids=planIds();
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-  <h2>Управление</h2>
-  <div style="margin-top:16px">
-    <div class="menu-item" onclick="planForm()"><span class="ic">📅</span>План на день и шаблоны${ids?' · '+ids.length:''}</div>
-    <div class="menu-item" onclick="phonesForm()"><span class="ic">📞</span>Заполнить телефоны</div>
-    <div class="menu-item" onclick="autoCoords()"><span class="ic">📍</span>Найти координаты (${list.filter(s=>!s.lat).length})</div>
-    <div class="menu-item" onclick="dupCheck()"><span class="ic">⧉</span>Поиск дублей по всем маршрутам</div>
-    <div class="menu-item" onclick="sortAz()"><span class="ic">Az</span>Отсортировать по алфавиту</div>
-    <div class="menu-item" onclick="bulkForm()"><span class="ic">＋</span>Загрузить список точек</div>
-    <div class="menu-item" onclick="backupAll()"><span class="ic">💾</span>Копия всех маршрутов</div>
-    <div class="menu-item" onclick="exportForGithub()"><span class="ic">⤓</span>Выгрузить файлы для GitHub</div>
-    <div class="menu-item" onclick="restoreForm()"><span class="ic">↺</span>Восстановить из копии</div>
-    <div class="menu-item" onclick="location.href='import.html'"><span class="ic">⇪</span>Импорт из Google Keep</div>
-  </div>`;
-  document.getElementById('sheet').classList.add('open');
-};
-
-function planForm(){
-  const ids=planIds()||[];
-  const days=['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-  <h2>План на день</h2>
-  <div class="steps">Сейчас в плане на сегодня: <b>${ids.length}</b> точек</div>
-  <div class="row"><button class="btn flat" onclick="planAll()">Отметить все</button>
-    <button class="btn flat" onclick="planClear()">Снять план</button></div>
-  <div class="field" style="margin-top:22px"><label>Список клиентов на сегодня</label>
-    <textarea id="planlist" style="min-height:150px" placeholder="Курпитко Атарбекова&#10;Молов Минская&#10;Титаренко"></textarea>
-    <div class="hint">Вставьте фамилии из таблицы, по одной в строке. Отмечу их в плане и выстрою порядок объезда от ближней к дальней.</div>
-    <div class="row"><button class="btn accent" onclick="planFromList()">Составить маршрут на день</button></div></div>
-  <div class="field" style="margin-top:22px"><label>Сохранить нынешний план как шаблон</label>
-    <select id="f_tpl">${days.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
-    <div class="row"><button class="btn flat" onclick="tplSave()">Сохранить</button>
-      <button class="btn flat" onclick="tplApply()">Применить</button></div>
-    <div class="hint">${tpl?('Готовые шаблоны: '+Object.keys(tpl).join(', ')):'Шаблонов пока нет.'}</div></div>`;
-}
-async function planAll(){plan={date:today(),ids:ordered().map(s=>s.id)};tab='day';render();closeSheet();
-  try{await push();toast('Отмечены все точки')}catch(e){toast(e.message)}}
-async function planClear(){plan=null;tab='all';render();closeSheet();
-  try{await push();toast('План снят')}catch(e){toast(e.message)}}
-async function tplSave(){
-  const d=document.getElementById('f_tpl').value;
-  const ids=planIds();
-  if(!ids||!ids.length){toast('Сначала отметьте точки на сегодня');return}
-  tpl=tpl||{}; tpl[d]=ids.slice();
-  closeSheet();
-  try{await push();toast('Шаблон «'+d+'» сохранён')}catch(e){toast(e.message)}
-}
-async function tplApply(){
-  const d=document.getElementById('f_tpl').value;
-  if(!tpl||!tpl[d]){toast('Шаблона «'+d+'» ещё нет');return}
-  plan={date:today(),ids:tpl[d].filter(id=>list.some(s=>s.id===id))};
-  tab='day'; render(); closeSheet();
-  try{await push();toast('План на сегодня: '+plan.ids.length+' точек')}catch(e){toast(e.message)}
-}
-
-const norm=x=>(x||'').toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9 ]/gi,' ').replace(/\s+/g,' ').trim();
-function findStop(q){
-  const n=norm(q); if(!n) return {};
-  const exact=list.find(s=>norm(s.name)===n);
-  if(exact) return {stop:exact};
-  const starts=list.filter(s=>norm(s.name).startsWith(n));
-  if(starts.length===1) return {stop:starts[0]};
-  if(starts.length>1) return {amb:starts.map(s=>s.name)};
-  const inc=list.filter(s=>norm(s.name).includes(n)||n.includes(norm(s.name)));
-  if(inc.length===1) return {stop:inc[0]};
-  if(inc.length>1) return {amb:inc.map(s=>s.name)};
-  const w=n.split(' ')[0];
-  const cand=list.filter(s=>norm(s.name).split(' ')[0]===w);
-  if(cand.length===1) return {stop:cand[0]};
-  if(cand.length>1) return {amb:cand.map(s=>s.name)};
-  return {};
-}
-async function planFromList(){
-  const rows=document.getElementById('planlist').value.split('\n').map(r=>r.trim()).filter(Boolean);
-  if(!rows.length){toast('Список пуст');return}
-  const found=[], miss=[], amb=[], seen=new Set();
-  rows.forEach(r=>{
-    const res=findStop(r);
-    if(res.stop){if(!seen.has(res.stop.id)){found.push(res.stop);seen.add(res.stop.id)}}
-    else if(res.amb) amb.push({q:r,list:res.amb});
-    else miss.push(r);
-  });
-  if(!found.length&&!amb.length){toast('Ни одна строка не совпала');return}
-  const withC=found.filter(s=>s.lat), without=found.filter(s=>!s.lat);
-  const order=withC.length>1?optimize(withC,null):withC;
-  plan={date:today(),ids:order.concat(without).map(s=>s.id)};
-  tab='day'; render();
-  try{await push()}catch(e){toast(e.message)}
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>План на сегодня</h2>
-    <div class="steps">В маршруте: <b>${found.length}</b> точек${withC.length>1?` · порядок выстроен, ${Math.round(totalKm(order))} км`:''}${without.length?`<br>Без координат, ушли в конец: ${without.length}`:''}${miss.length?`<br><br><span style="color:var(--warn)">Не нашлись:</span><br>${miss.map(esc).join('<br>')}`:''}
-    ${amb.length?`<br><br><span style="color:var(--warn)">Совпало несколько — уточните адрес:</span><br>${amb.map(a=>esc(a.q)+' → '+a.list.map(esc).join(' / ')).join('<br>')}`:''}</div>
-    <div class="hint">Неоднозначные не добавлены — отметьте их галочкой вручную. Порядок правится ручкой ⠿ на вкладке «Сегодня».</div>`;
-}
-
-function phonesForm(){
-  const need=list.filter(s=>!s.phone);
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-  <h2>Телефоны</h2>
-  <div class="steps">Без телефона: <b>${need.length}</b> из ${list.length}</div>
-  <div id="phlist">${need.slice(0,60).map(s=>`<div class="phrow">
-    <span>${esc(s.name)}</span><input data-ph="${s.id}" inputmode="tel" placeholder="+7…"></div>`).join('')}</div>
-  ${need.length>60?`<div class="hint">Показаны первые 60, остальные — после сохранения.</div>`:''}
-  <div class="row"><button class="btn accent" onclick="phonesSave()">Сохранить</button></div>`;
-}
-async function phonesSave(){
-  let n=0;
-  document.querySelectorAll('[data-ph]').forEach(i=>{
-    const v=i.value.trim(); if(!v) return;
-    const s=list.find(x=>x.id===i.dataset.ph); if(s){s.phone=v;n++}
-  });
-  if(!n){toast('Ничего не вписано');return}
-  render(); closeSheet();
-  try{await push();toast('Телефонов записано: '+n)}catch(e){toast(e.message)}
-}
-
-async function dupCheck(){
-  document.getElementById('card').innerHTML=`<h2>Ищу дубли…</h2>`;
-  const all=await loadAll();
-  const seen={}, dups=[];
-  ROUTES.forEach(r=>(all[r.id]||[]).forEach(s=>{
-    const k=(s.name||'').toLowerCase().replace(/\s+/g,' ').trim();
-    if(!k) return;
-    if(seen[k]) {seen[k].push(r.id); } else seen[k]=[r.id];
-  }));
-  Object.entries(seen).forEach(([k,rs])=>{if(rs.length>1) dups.push({k,rs})});
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Дубли · ${dups.length}</h2>
-    <div class="steps">${dups.length?dups.map(d=>`<b>${esc(d.k)}</b> — маршруты ${d.rs.join(', ')}`).join('<br>'):'Повторов не нашлось.'}</div>
-    <div class="hint">Одинаковое имя в разных маршрутах — это нормально, если точка обслуживается в разные дни.</div>`;
-}
-
-function bulkForm(){
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-  <h2>Загрузить список</h2>
-  <div class="field" style="margin-top:16px"><label>название | адрес | ссылка | телефон | заметка</label>
-    <textarea id="bulk" style="min-height:180px"></textarea>
-    <div class="hint">По точке в строке. Хватит одного названия. Строки встанут в конец маршрута.</div></div>
-  <div class="row"><button class="btn accent" onclick="bulkAdd()">Добавить</button></div>`;
-}
-async function bulkAdd(){
-  const rows=document.getElementById('bulk').value.split('\n').map(r=>r.trim()).filter(Boolean);
-  if(!rows.length){toast('Пусто');return}
-  const have=list.map(s=>(s.name||'').toLowerCase());
-  const dup=rows.map(r=>r.split('|')[0].trim()).filter(n=>have.includes(n.toLowerCase()));
-  if(dup.length&&!confirm('Уже есть:\n'+dup.join('\n')+'\n\nВсё равно добавить?')) return;
-  rows.forEach((r,n)=>{
-    const p=r.split('|').map(x=>x.trim());
-    const c=parseCoord(p[2]);
-    list.push({id:'b'+Date.now().toString(36)+n,name:p[0]||'',addr:p[1]||'',url:p[2]||'',url2:'',
-      phone:p[3]||'',hours:'',note:p[4]||'',photo:'',lat:c?c[0]:null,lon:c?c[1]:null});
-  });
-  render(); closeSheet();
-  try{await push();toast('Добавлено: '+rows.length)}catch(e){toast(e.message)}
-}
-async function sortAz(){
-  if(!confirm('Переставить точки по алфавиту?')) return;
-  list.sort((a,b)=>(a.name||'').localeCompare(b.name||'','ru'));
-  render(); closeSheet();
-  try{await push();toast('Отсортировано')}catch(e){toast(e.message)}
-}
-async function exportForGithub(){
-  toast('Собираю файлы…');
-  const zipNote=[];
-  for(const r of ROUTES){
-    try{
-      const d=await fetch(API+'/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json());
-      const blob=new Blob([JSON.stringify({stops:d.stops||[],day:d.day||null,tpl:d.tpl||null},null,1)],{type:'application/json'});
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob); a.download='route-'+r.id+'.json'; a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-      zipNote.push(r.name+': '+((d.stops||[]).length));
-      await new Promise(z=>setTimeout(z,400));
-    }catch(e){}
-  }
-  closeSheet();
-  toast('Скачано 6 файлов — положите их в папку data репозитория');
-}
-async function backupAll(){
-  toast('Собираю копию…');
-  const all={};
-  for(const r of ROUTES){
-    try{all[r.id]=await fetch(API+'/api/route?m='+r.id+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json())}catch(e){}
-  }
-  const blob=new Blob([JSON.stringify({all,date:today()},null,1)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob); a.download='marshruty-vse-'+today()+'.json'; a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  closeSheet(); toast('Копия всех маршрутов сохранена');
-}
-function restoreForm(){
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-  <h2>Восстановить</h2>
-  <div class="field" style="margin-top:16px"><label>Файл копии</label>
-    <input type="file" id="f_restore" accept=".json,application/json">
-    <div class="hint">Подходит и копия одного маршрута, и копия всех сразу. Текущее содержимое заменится.</div></div>
-  <div class="row"><button class="btn accent" onclick="restore()">Загрузить</button></div>`;
-}
-function restore(){
-  const f=document.getElementById('f_restore').files[0];
-  if(!f){toast('Выберите файл');return}
-  const fr=new FileReader();
-  fr.onload=async()=>{
-    try{
-      const d=JSON.parse(fr.result);
-      if(d.all){
-        if(!confirm('Заменить содержимое всех маршрутов?')) return;
-        let n=0;
-        for(const [rid,val] of Object.entries(d.all)){
-          await fetch(API+'/api/route?m='+rid,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
-            body:JSON.stringify({stops:val.stops||[],day:val.day||null,tpl:val.tpl||null})});
-          n+=(val.stops||[]).length;
-        }
-        closeSheet(); await loadRoute(); toast('Восстановлено точек: '+n);
-      }else{
-        if(!Array.isArray(d.stops)) throw new Error('Это не копия маршрута');
-        if(!confirm('Заменить '+list.length+' точек на '+d.stops.length+'?')) return;
-        list=d.stops; plan=d.day||null; tpl=d.tpl||null;
-        render(); closeSheet(); await push(); toast('Восстановлено: '+list.length);
-      }
-    }catch(e){toast(e.message)}
-  };
-  fr.readAsText(f);
-}
-async function autoCoords(){
-  const todo=list.filter(s=>!s.lat);
-  if(!todo.length){toast('Координаты есть у всех');return}
-  const c=document.getElementById('card');
-  let ok=0,fail=[];
-  const draw=i=>{c.innerHTML=`<h2>Ищу координаты</h2><div class="steps"><b>${i}</b> из ${todo.length} · найдено ${ok}</div><div class="hint">Не закрывайте страницу.</div>`};
-  draw(0);
-  for(let i=0;i<todo.length;i++){
-    const s=todo[i]; let got=null;
-    for(const u of [s.url,s.url2]){
-      if(got||!u) continue;
-      try{const r=await fetch(API+'/api/resolve?url='+encodeURIComponent(u),{headers:{'x-pass':pass}});
-        if(r.ok){const d=await r.json();got=[d.lat,d.lon,d.kind==='center'?'geo':'link']}}catch(e){}
-    }
-    if(!got&&s.addr){
-      try{const r=await fetch(API+'/api/geocode?q='+encodeURIComponent(s.addr+', Краснодарский край'),{headers:{'x-pass':pass}});
-        if(r.ok){const d=await r.json();got=[d.lat,d.lon,'geo']}}catch(e){}
-      await new Promise(r=>setTimeout(r,1100));
-    }
-    if(got){s.lat=got[0];s.lon=got[1];s.cs=got[2];ok++} else fail.push(s.name);
-    draw(i+1);
-  }
-  try{await push()}catch(e){toast(e.message)}
-  render();
-  c.innerHTML=`<button class="close" onclick="closeSheet()">✕</button><h2>Готово</h2>
-    <div class="steps">Найдено: <b>${ok}</b> из ${todo.length}${fail.length?`<br><br>Не нашлось:<br>${fail.map(esc).join('<br>')}`:''}</div>
-    <div class="hint">Остальные добейте кнопкой «Взять с GPS» на точке.</div>`;
-}
-
-/* ---------- вход ---------- */
-document.getElementById('adminBtn').onclick=async()=>{
-  if(staticMode){toast('Этот адрес только для просмотра. Правки — в основном приложении');return}
-  if(admin){exitAdmin();return}
-  if(pass&&await tryPass(pass)) return;
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Редактирование</h2>
-    <div class="field" style="margin-top:18px"><label>Пароль</label>
-      <input id="f_pass" type="password" inputmode="numeric"></div>
-    <div class="row"><button class="btn accent" onclick="tryPass(document.getElementById('f_pass').value)">Войти</button></div>`;
-  document.getElementById('sheet').classList.add('open');
-  setTimeout(()=>{const el=document.getElementById('f_pass');el&&el.focus()},150);
-};
-async function tryPass(p){
-  if(!p) return false;
-  try{
-    const r=await fetch(API+'/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass:p})});
-    const d=await r.json();
-    if(d.ok){admin=true;setPass(p);closeSheet();toast('Тап — правка · ⋮ — действия');
-      myRoutes=null;akey='';try{localStorage.removeItem('kmz_k')}catch(e){}
-      fillPicker();document.getElementById('dock').style.display='flex';
-      await loadRoute();try{initRoutes()}catch(e){}return true}
-    toast('Пароль не подошёл');
-  }catch(e){toast('Нет связи с сервером')}
-  return false;
-}
-function exitAdmin(){admin=false;setPass('');selClear();render()}
-
-/* ---------- маршрут ---------- */
-function dist(a,b){
-  const R=6371,rad=x=>x*Math.PI/180;
-  const dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon);
-  const h=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;
-  return 2*R*Math.asin(Math.sqrt(h));
-}
-function optimize(pts,start){
-  const left=pts.slice(), out=[]; let cur=start;
-  if(!cur){cur=left.shift();out.push(cur)}
-  while(left.length){
-    let bi=0,bd=Infinity;
-    left.forEach((p,i)=>{const d=dist(cur,p);if(d<bd){bd=d;bi=i}});
-    cur=left[bi]; out.push(cur); left.splice(bi,1);
-  }
-  for(let a=0;a<out.length-2;a++) for(let b=a+2;b<out.length;b++){
-    const before=dist(out[a],out[a+1])+(out[b+1]?dist(out[b],out[b+1]):0);
-    const after=dist(out[a],out[b])+(out[b+1]?dist(out[a+1],out[b+1]):0);
-    if(after<before-1e-9){const seg=out.slice(a+1,b+1).reverse();out.splice(a+1,b-a,...seg)}
+  const r = TABS.find(x => x.id === tab);
+  if(r.id !== 'all') return r.cl.map((c, i) => ({...c, r:r.name, i:i+1}));
+  const out = [];
+  for(const g of DATA.routes){
+    if(g.id === 'etc') continue;
+    const on = openRoutes.has(g.id);
+    const done = g.cl.filter(c => mark(c.n).s).length;
+    out.push({hdr: g.name + (g.sub ? ' · ' + g.sub : ''), rid: g.id, on, info: `${done} из ${g.cl.length}`});
+    if(on) for(const c of g.cl) out.push({...c, r:g.name});
   }
   return out;
 }
-const totalKm=p=>p.reduce((s,x,i)=>i?s+dist(p[i-1],x):0,0);
-function ylink(g){return 'https://yandex.ru/maps/?rtt=auto&rtext='+g.map(s=>s.lat+','+s.lon).join('~')}
-function legsHtml(pts,label){
-  const legs=[]; for(let i=0;i<pts.length;i+=10) legs.push(pts.slice(i,i+10));
-  return legs.map((g,i)=>`<div class="row"><a class="btn ${i?'flat':'accent'}" target="_blank" rel="noopener" href="${ylink(g)}">${label}${legs.length>1?` · часть ${i+1} (${i*10+1}–${i*10+g.length})`:''}</a></div>`).join('');
+
+const C = 2*Math.PI*10;
+const ring = p => `<svg class="ring" viewBox="0 0 26 26"><circle class="b" cx="13" cy="13" r="10"/><circle class="o" cx="13" cy="13" r="10" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}" transform="rotate(-90 13 13)"/></svg>`;
+const leftOf = r => r.cl.filter(c => !mark(c.n).s).length;
+function drawTabs(){
+  $('#tabs').innerHTML = TABS.map(r => { const l = r.cl.length ? leftOf(r) : 0;
+    return `<button class="tab" role="tab" aria-selected="${r.id===tab && !query}" data-t="${r.id}">${r.name}${r.sub?`<i>${r.sub}</i>`:''}${l && r.id!=='all' ? `<i>${l}</i>`:''}</button>`; }).join('');
+  const nb = r => { const n = r.cl.length, l = n ? leftOf(r) : 0;
+    const ic = r.id==='pay' ? '<span class="ring"></span>' : n ? ring((n-l)/n) : '';
+    return `<button data-t="${r.id}" aria-selected="${r.id===tab && !query}">${ic}<span class="t">${r.name}${r.sub?`<small>${r.sub}</small>`:''}</span>${n?`<span class="n">${l||'✓'}</span>`:''}</button>`; };
+  $('#nav1').innerHTML = TABS.filter(r => /^m\d|^sea$/.test(r.id)).map(nb).join('');
+  $('#nav2').innerHTML = TABS.filter(r => !/^m\d|^sea$/.test(r.id)).map(nb).join('');
+  const r = TABS.find(x => x.id === tab);
+  $('#ttl').textContent = query ? 'Поиск' : r.name;
+  $('#eyebrow').textContent = query ? 'по всем маршрутам' : (r.sub || (r.id==='pay' ? 'оплаты и акты' : 'Точки КМЗ'));
 }
-document.getElementById('navBtn').onclick=()=>{
-  const pts=visible().filter(s=>s.lat&&!st[s.id]);
-  if(!pts.length){toast('Нет точек с координатами');return}
-  if(pts.length===1){window.open(ylink(pts),'_blank');return}
-  window._pts=pts;
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Маршрут · ${pts.length} точек</h2>
-    <div class="steps">Порядок как в списке · примерно ${Math.round(totalKm(pts))} км${pts.length>10?'<br>Яндекс держит до 10 точек в ссылке, поэтому разбито на части.':''}</div>
-    ${legsHtml(pts,'Ехать')}
-    <div style="height:18px"></div>
-    <button class="btn flat" onclick="buildShort()">Кратчайший путь 🧭</button>`;
-  document.getElementById('sheet').classList.add('open');
-};
-function buildShort(){
-  const pts=window._pts||[];
-  const draw=start=>{
-    const o=optimize(pts,start); window._opt=o;
-    const was=Math.round(totalKm(pts)), now=Math.round(totalKm(o));
-    document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-      <h2>Кратчайший путь</h2>
-      <div class="steps">${now} км вместо ${was} км${was>now?` · короче на ${was-now} км`:''}<br><br>${o.map((s,i)=>`<b>${i+1}.</b> ${esc(s.name)}`).join('<br>')}</div>
-      ${legsHtml(o,'Ехать')}
-      ${admin?`<div class="row"><button class="btn flat" onclick="applyShort()">Записать этот порядок в маршрут</button></div>`:''}`;
-  };
-  if(navigator&&navigator.geolocation){
-    toast('Определяю ваше место…');
-    navigator.geolocation.getCurrentPosition(p=>draw({lat:p.coords.latitude,lon:p.coords.longitude}),()=>draw(null),{timeout:8000});
-  } else draw(null);
-}
-async function applyShort(){
-  const o=window._opt||[]; if(!o.length) return;
-  const ids=o.map(s=>s.id);
-  if(tab==='day'&&planIds()){
-    plan.ids=ids.concat(plan.ids.filter(id=>!ids.includes(id)));
-  }else{
-    const rest=list.filter(s=>!ids.includes(s.id));
-    list=ids.map(id=>list.find(s=>s.id===id)).filter(Boolean).concat(rest);
-  }
-  render(); closeSheet();
-  try{await push();toast('Порядок записан')}catch(e){toast(e.message)}
+function drawProgress(){
+  const r = TABS.find(x => x.id === tab);
+  const all = DATA.routes.flatMap(g => g.cl), dn = all.filter(c => mark(c.n).s).length;
+  $('#rp').textContent = dn ? dn : '';
+  $('#rp').hidden = !dn;
+  $('#sfoot').textContent = `За день отмечено ${dn} из ${MAIN.length}`;
+  if(r.id === 'pay' || !r.cl.length){ $('#stats').hidden = true; $('#stat').hidden = false; $('#stat').textContent = r.id==='pay' ? 'Напоминания по оплатам и актам сверки' : ''; return; }
+  $('#stats').hidden = false; $('#stat').hidden = true;
+  const took = r.cl.filter(c => mark(c.n).s === 'ok').length;
+  const no = r.cl.filter(c => mark(c.n).s === 'no').length;
+  const n = r.cl.length, done = took + no;
+  $('#pct').innerHTML = `${Math.round(done/n*100)}%<small>обошёл</small>`;
+  $('#bOk').style.width = took/n*100+'%'; $('#bNo').style.width = no/n*100+'%';
+  $('#cOk').textContent = took; $('#cNo').textContent = no; $('#cLeft').textContent = n - done;
 }
 
-/* ---------- карта ---------- */
-document.getElementById('mapBtn').onclick=async()=>{
-  const pts=ordered().filter(s=>s.lat);
-  const c=document.getElementById('card');
-  if(!pts.length){toast('Ни у одной точки нет координат');return}
-  c.innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Карта · ${pts.length} точек</h2>
-    <div class="hint" style="margin:6px 0 12px">Зелёные — сдано, красные — не сдано. Тап по метке — карточка.</div>
-    <div id="map"></div>`;
-  document.getElementById('sheet').classList.add('open');
-  await ensureLeaflet();
-  const map=L.map('map',{zoomControl:false}).setView([pts[0].lat,pts[0].lon],12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-  const bounds=[];
-  pts.forEach((s,i)=>{
-    const stt=st[s.id];
-    const cls='pin'+(stt?(stt.d?' done':' fail'):'');
-    const m=L.marker([s.lat,s.lon],{icon:L.divIcon({className:'',html:`<div class="${cls}">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
-    m.on('click',()=>{closeSheet();setTimeout(()=>openCard(s.id),120)});
-    bounds.push([s.lat,s.lon]);
-  });
-  if(bounds.length>1) map.fitBounds(bounds,{padding:[30,30]});
-  setTimeout(()=>map.invalidateSize(),200);
-};
-function ensureLeaflet(){
-  if(window.L) return Promise.resolve();
-  return new Promise(res=>{
-    const css=document.createElement('link');
-    css.rel='stylesheet'; css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(css);
-    const js=document.createElement('script');
-    js.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    js.onload=res; js.onerror=()=>{toast('Карта не загрузилась — нужен интернет');res()};
-    document.head.appendChild(js);
-  });
+function tags(c){
+  const t = [];
+  if(c.p && c.p.includes('групп')) t.push('<span class="tg grp">в группу</span>');
+  if(c.fri) t.push('<span class="tg fri">пятница</span>');
+  if(c.r0) t.push(`<span class="tg src">${esc(c.r0)}</span>`);
+  const s = siblings(c).length;
+  if(s) t.push(`<span class="tg sib">1 номер ×${s+1}</span>`);
+  const st = mark(c.n).s;
+  if(st) t.push(`<span class="tg st-${st}">${st==='ok'?'взяли':'не берёт'}</span>`);
+  if(query) t.push(`<span class="tg src">${esc(c.r)}</span>`);
+  return t.length ? `<span class="tags">${t.join('')}</span>` : '';
 }
 
-document.getElementById('shareBtn').onclick=async()=>{
-  const base=location.origin+location.pathname.replace(/[^/]*$/,'');
-  if(!admin){
-    const url=base+'r'+route+'.html'+kq('?');
-    if(navigator.share) navigator.share({title:rName(route),url}).catch(()=>{});
-    else if(navigator.clipboard){navigator.clipboard.writeText(url);toast('Ссылка скопирована')}
-    return;
+function card(c){
+  const F = c.f || [];
+  const shown = openPos === c.n;
+  const cats = [];
+  for(const [cat, lbl, core] of F){
+    let g = cats.find(x => x[0] === cat);
+    if(!g){ g = [cat, []]; cats.push(g); }
+    g[1].push(`<span class="chip${core?' core':''}">${esc(lbl)}</span>`);
   }
-  document.getElementById('card').innerHTML=`<h2>Ссылки</h2><div class="steps">Загружаю ключи…</div>`;
-  document.getElementById('sheet').classList.add('open');
-  let keys=null;
-  try{keys=(await fetch(API+'/api/keys',{headers:{'x-pass':pass}}).then(r=>r.json())).keys}catch(e){}
-  const body=keys?`
-    <div class="steps">Каждому водителю — своя ссылка. Чужие маршруты по ней не откроются.</div>
-    ${ROUTES.map(r=>`<div class="phrow"><span>${r.name}</span>
-      <button class="mini" style="margin:0" onclick="copyLink('${base}r${r.id}.html?k=${keys['r'+r.id]}')">Копировать</button></div>`).join('')}
-    <div class="phrow"><span><b>Все маршруты</b> — вам и руководителю</span>
-      <button class="mini" style="margin:0" onclick="copyLink('${base}rall.html?k=${keys.all}')">Копировать</button></div>
-    <div class="row" style="margin-top:18px"><button class="btn danger" onclick="newKeys()">Сменить все ключи</button></div>
-    <div class="hint">После смены старые ссылки перестанут работать.</div>`
-   :`<div class="steps">Защита ссылок не включена — маршрут открывается по любой ссылке.</div>
-     <div class="row"><button class="btn accent" onclick="newKeys()">Создать защищённые ссылки</button></div>`;
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button><h2>Ссылки</h2>`+body;
-};
-function copyLink(u){
-  if(navigator.share) navigator.share({url:u}).catch(()=>{});
-  else if(navigator.clipboard){navigator.clipboard.writeText(u);toast('Скопировано')}
-  else prompt('Ссылка',u);
-}
-async function newKeys(){
-  if(!confirm('Создать новые ключи? Старые ссылки перестанут работать.')) return;
-  try{
-    const d=await fetch(API+'/api/keys',{method:'POST',headers:{'x-pass':pass}}).then(r=>r.json());
-    if(d.keys){closeSheet();toast('Ключи созданы — раздайте новые ссылки');document.getElementById('shareBtn').click()}
-  }catch(e){toast('Не получилось')}
+  const pos = !shown ? '' : (F.length
+    ? cats.map(([cat, ch]) => `<div class="cat"><h4>${esc(cat)}</h4><div>${ch.join('')}</div></div>`).join('')
+      + (c.t ? `<p class="src">Тёмным — берёт почти всегда, светлым — иногда. По ${c.t} заявкам с мая${c.t < 6 ? ', данных мало' : ''}.</p>`
+             : `<p class="src">Заявок в архиве нет — список из базы, без частоты.</p>`)
+    : `<p class="empty">Заявок в архиве нет.</p>`);
+
+  let phones = '';
+  if(c.p && c.p.includes('групп')) phones = `<p class="none">Заявку принимают в группе</p>`;
+  else if(c.p){
+    phones = c.p.split('\n').map((p, i) => {
+      const d = p.replace(/\D/g,'');
+      if(d.length < 10) return '';
+      const w = d.replace(/^8/,'7');
+      const who = (c.w||[])[i];
+      return `<div class="ph">${who?`<small>${esc(who)}</small>`:''}<div>
+        <a class="call" href="tel:${d}">${esc(p)}</a>
+        <a class="m max" href="#" data-maxpick="${w}" data-nm="${esc(c.n)}">MAX</a>
+        <a class="m" href="whatsapp://send?phone=${w}">WhatsApp</a>
+        <a class="m" href="sms:${d}">SMS</a></div></div>`;
+    }).join('');
+  }
+  if(!phones) phones = `<p class="none">Телефона нет</p>`;
+
+  const sib = siblings(c);
+  const sibBox = sib.length ? `<div class="link">
+      <b>Один номер на ${sib.length+1} ${sib.length+1<5?'точки':'точек'} — спроси сразу по всем</b>
+      <div class="gl">${sib.map(s => `<button data-go="${esc(s.n)}">${mark(s.n).s?ICON[mark(s.n).s]:'◻'} ${esc(s.n)}</button>`).join('')}</div>
+    </div>` : '';
+
+  return `<div class="body">
+    ${c.fri ? `<p class="pl fri">Заявка только на пятницу</p>` : ''}
+    ${c.note ? `<p class="pl warn">${esc(c.note)}</p>` : ''}
+    ${sibBox}
+    ${phones}
+    <button class="more" data-pos="${esc(c.n)}">Что берёт<span>${F.length?F.length+' поз.':'нет данных'} ${shown?'▲':'▼'}</span></button>
+    ${pos}
+  </div>`;
 }
 
-try{
-  if(navigator.serviceWorker&&navigator.serviceWorker.register){
-    navigator.serviceWorker.register('sw.js').then(function(reg){
-      if(reg&&reg.update) setTimeout(function(){try{reg.update()}catch(e){}},3000);
-    })['catch'](function(){});
+function row(c){
+  const m = mark(c.n);
+  return `<div class="rowwrap ${m.s?'s-'+m.s:''}" id="c-${cid(c.n)}">
+    <div class="rowline">
+      ${c.i ? `<span class="num">${c.i}</span>` : ''}
+      <button class="row" data-open="${esc(c.n)}"><b>${esc(c.n)}</b>${tags(c)}</button>
+      <div class="quick">
+        <button class="q-ok" data-s="ok" data-n="${esc(c.n)}" aria-pressed="${m.s==='ok'}" aria-label="Взял"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg></button>
+        <button class="q-no" data-s="no" data-n="${esc(c.n)}" aria-pressed="${m.s==='no'}" aria-label="Не взял"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+    </div>
+    ${openName===c.n ? card(c) : ''}
+  </div>`;
+}
+
+function payView(){
+  const sun = ALL.filter(c => c.pay && !c.pay.startsWith('Акт'));
+  const act = ALL.filter(c => c.pay && c.pay.startsWith('Акт'));
+  const grp = [];
+  for(const c of sun){
+    const k = c.n.split(' ')[0];
+    let g = grp.find(x => x.k === k);
+    if(!g){ g = {k, first:c.n, pay:c.pay, n:0, one:c.n}; grp.push(g); }
+    g.n++;
   }
-}catch(e){}
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&!admin&&!dirty) loadRoute();
+  grp.sort((a,b) => a.k.localeCompare(b.k,'ru'));
+  const btn = g => `<button data-go="${esc(g.first)}">${esc(g.n>1 ? g.k : g.one)}<span>${esc(g.pay.replace('Вс — ',''))}${g.n>1?`, ${g.n} ${g.n<5?'точки':'точек'}`:''}</span></button>`;
+  return `<div class="paysec"><h3>Воскресенье</h3><p>Скинуть на оплату или дождаться платёжки</p>${grp.map(btn).join('')}</div>
+    <div class="paysec"><h3>Каждый месяц</h3><p>Акт сверки в ЭДО</p>
+      <button data-go="Курпитко Карасунская">Курпитко Е.Н.<span>все точки, ${act.filter(c=>c.n.startsWith('Курпитко')).length}</span></button>
+      ${act.filter(c => !c.n.startsWith('Курпитко')).map(c => `<button data-go="${esc(c.n)}">${esc(c.n)}<span>3 юрлица</span></button>`).join('')}
+    </div>`;
+}
+
+function draw(){
+  drawTabs(); drawProgress();
+  if(tab === 'pay' && !query){ $('#list').innerHTML = payView(); return; }
+  let list = clients();
+  if(hideDone) list = list.filter(c => c.hdr || !mark(c.n).s || c.n === openName);
+  // на вкладке маршрута: сначала неотмеченные, отмеченные — ниже отдельным блоком
+  const split = tab !== 'all' && !query.trim();
+  let html;
+  if(split){
+    const open = list.filter(c => !mark(c.n).s), done = list.filter(c => mark(c.n).s);
+    html = open.map(row).join('') + (done.length ? `<div class="sec">Отмечено · ${done.length}</div>` + done.map(row).join('') : '');
+  } else html = list.map(c => c.hdr
+      ? `<button class="hdr${c.on?' on':''}" data-fold="${c.rid}"><span class="car">›</span> ${esc(c.hdr)}<i>${c.info}</i></button>`
+      : row(c)).join('');
+  $('#list').innerHTML = list.length ? html
+    : `<p class="empty">${hideDone ? 'Все точки отмечены 👍' : 'Ничего не нашлось. Попробуй часть названия — «кутк», «анап» или «пятница».'}</p>`;
+}
+
+function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(el._h); el._h = setTimeout(() => el.classList.remove('on'), 2200); }
+function setMark(n, s){ if(s) state.marks[n] = {s}; else delete state.marks[n]; }
+function goTo(n){
+  const r = ALL.find(x => x.n === n); if(!r) return;
+  tab = r.rid; query = ''; $('#q').value = ''; openName = n; openPos = null; draw();
+  const el = document.getElementById('c-'+cid(n)); if(el) el.scrollIntoView({block:'center'});
+}
+
+document.addEventListener('click', e => {
+  const cp = e.target.closest('[data-copy]');
+  if(cp){ const v = '+'+cp.dataset.copy; try{ navigator.clipboard.writeText(v); }catch(err){} toast('Номер '+v+' скопирован — если чата нет, найди по номеру'); }
+  const t = e.target.closest('[data-t]');
+  if(t){ tab = t.dataset.t; openName = null; openPos = null; query=''; $('#q').value=''; draw(); scrollTo(0,0); return; }
+  const fd = e.target.closest('[data-fold]');
+  if(fd){ const id = fd.dataset.fold; openRoutes.has(id) ? openRoutes.delete(id) : openRoutes.add(id); draw(); return; }
+  const o = e.target.closest('[data-open]');
+  if(o){ openName = openName === o.dataset.open ? null : o.dataset.open; openPos = null; draw(); return; }
+  const p = e.target.closest('[data-pos]');
+  if(p){ openPos = openPos === p.dataset.pos ? null : p.dataset.pos; draw(); return; }
+  const g = e.target.closest('[data-go]');
+  if(g){ goTo(g.dataset.go); return; }
+  const b = e.target.closest('[data-s]');
+  if(b){ const n = b.dataset.n; setMark(n, mark(n).s === b.dataset.s ? null : b.dataset.s); save(); draw(); return; }
 });
-try{Object.keys(localStorage).filter(k=>k.startsWith('done_')).forEach(k=>localStorage.removeItem(k))}catch(e){}
-fillPicker();
-render();
-loadRoute();
-try{ initRoutes(); }catch(e){}
-setTimeout(()=>{
-  const el=document.getElementById('list');
-  if(el&&el.textContent.indexOf('Загружаю')>=0)
-    el.innerHTML='<div class="empty">Сервер не отвечает.<br><br>Обновите страницу — или откройте позже.</div>';
-},12000);
+document.addEventListener('input', e => { if(e.target.id === 'q'){ query = e.target.value; openName = null; draw(); } });
+$('#hide').onclick = () => { hideDone = !hideDone; $('#hide').setAttribute('aria-pressed', hideDone); draw(); };
+
+$('#rep').onclick = async () => {
+  const lines = ['Отчёт · '+state.date]; let any = false;
+  for(const r of DATA.routes){
+    const marked = r.cl.filter(c => mark(c.n).s);
+    if(!marked.length) continue; any = true;
+    lines.push('', r.name);
+    for(const k of ['ok','no']){
+      const g = marked.filter(c => mark(c.n).s === k);
+      if(g.length) lines.push(ICON[k]+' '+ST[k]+' ('+g.length+'): ' + g.map(c => c.n).join('; '));
+    }
+    const left = r.id === 'etc' ? [] : r.cl.filter(c => !mark(c.n).s);
+    if(left.length) lines.push('без отметки ('+left.length+'): ' + left.map(c => c.n).join('; '));
+  }
+  if(!any){ toast('Пока нечего отправлять — отметь хотя бы одну точку'); return; }
+  const txt = lines.join('\n');
+  try{ await navigator.clipboard.writeText(txt); }
+  catch(e){ const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  toast('Отчёт скопирован — вставь в MAX');
+};
+$('#clr').onclick = () => { $('#veil').hidden = false; };
+$('#clrNo').onclick = () => { $('#veil').hidden = true; };
+$('#veil').onclick = e => { if(e.target.id === 'veil') $('#veil').hidden = true; };
+$('#clrYes').onclick = () => {
+  $('#veil').hidden = true;
+  state = {date: todayStr(), marks:{}}; save(); openName = null; draw(); toast('Отметки очищены');
+};
+document.addEventListener('keydown', e => { if(e.key === 'Escape') $('#veil').hidden = true; });
+
+
+(function(){var side=document.querySelector('.side'),veil=document.getElementById('dveil'),root=document.documentElement,K2='kmz_theme_t',mq=matchMedia('(prefers-color-scheme: dark)');
+var MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+function get(){try{return localStorage.getItem(K2)||'auto'}catch(e){return 'auto'}}
+function apply(t){if(t==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',t);var d=t==='dark'||(t==='auto'&&mq.matches);document.getElementById('thbtn').innerHTML=d?SUN:MOON;document.querySelectorAll('[data-th]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.th===t)});}
+function set(t){try{localStorage.setItem(K2,t)}catch(e){}apply(t)}
+apply(get());mq.addEventListener&&mq.addEventListener('change',function(){apply(get())});
+function open(){side.classList.add('open');veil.hidden=false}function close(){side.classList.remove('open');veil.hidden=true}
+document.getElementById('burger').onclick=open;document.getElementById('dclose').onclick=close;veil.onclick=close;
+document.getElementById('thbtn').onclick=function(){var t=get(),d=t==='dark'||(t==='auto'&&mq.matches);set(d?'light':'dark')};
+side.addEventListener('click',function(e){var th=e.target.closest('[data-th]');if(th){set(th.dataset.th);return}if(e.target.closest('[data-t]'))setTimeout(close,120)});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+})();
+
+/* ---------- приветствие MAX, свайп, очередь, отчёт ---------- */
+const GREET=[['🌤','Доброе утро! По заявке на завтра'],['☀️','Добрый день! По заявке на завтра']];
+function vib(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
+function copyTxt(t){try{navigator.clipboard.writeText(t)}catch(e){}}
+function sheet(html){closeSheet();const v=document.createElement('div');v.className='bs';v.id='bs';v.innerHTML='<div class="bs-c"><div class="bs-g"></div>'+html+'</div>';v.addEventListener('click',e=>{if(e.target===v)closeSheet()});document.body.appendChild(v);return v;}
+function closeSheet(){const v=document.getElementById('bs');if(v)v.remove();}
+function openMax(text,phone){if(phone)copyTxt('+'+phone);const a=document.createElement('a');a.href='https://max.ru/:share?text='+encodeURIComponent(text);a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();if(phone)toast('Номер +'+phone+' скопирован — найди чат и отправь');}
+function greetOrder(){const h=new Date().getHours();return h<12?GREET:[GREET[1],GREET[0]];}
+function pickGreeting(phone,name){const v=sheet('<div class="bs-k">MAX · '+esc(name||'')+'</div><div class="bs-h">Какое приветствие?</div><p class="bs-s">Откроется MAX с готовым текстом, номер скопируется.</p>'+greetOrder().map((g,i)=>'<button class="bs-o max" data-g="'+i+'"><i>M</i><span>'+g[1]+'<small>'+(i===0?'подходит по времени':'')+'</small></span></button>').join(''));
+ v.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const g=greetOrder()[+b.dataset.g][1];closeSheet();openMax(g,phone);});}
+function firstPhone(c){if(!c.p||c.p.includes('групп'))return '';const d=(c.p.split('\n')[0].match(/\d/g)||[]).join('');return d.length>=10?d.replace(/^8/,'7'):'';}
+document.addEventListener('click',e=>{const m=e.target.closest('[data-maxpick]');if(m){e.preventDefault();e.stopPropagation();const c=ALL.find(x=>x.n===m.dataset.nm);pickGreeting(m.dataset.maxpick,c?c.n:'');}},true);
+
+/* свайп */
+(function(){let el=null,x0=0,y0=0,dx=0,mode=0,sup=false;
+document.addEventListener('touchstart',e=>{const line=e.target.closest('.rowline');if(!line||e.target.closest('.quick'))return;el=line;x0=e.touches[0].clientX;y0=e.touches[0].clientY;dx=0;mode=0;},{passive:true});
+document.addEventListener('touchmove',e=>{if(!el)return;const x=e.touches[0].clientX-x0,y=e.touches[0].clientY-y0;if(!mode){if(Math.abs(x)<8&&Math.abs(y)<8)return;mode=Math.abs(x)>Math.abs(y)?1:2;}if(mode!==1)return;dx=x;el.style.transition='none';el.style.transform='translateX('+dx+'px)';const w=el.parentNode;w.dataset.sw=dx>0?'ok':'no';if(Math.abs(dx)>90&&!el._b){el._b=1;vib(10)}if(Math.abs(dx)<=90)el._b=0;if(e.cancelable)e.preventDefault();},{passive:false});
+document.addEventListener('touchend',()=>{if(!el)return;const line=el,w=line.parentNode;el=null;if(mode!==1){return;}sup=true;setTimeout(()=>sup=false,350);line.style.transition='transform .2s';
+ if(Math.abs(dx)>90){const n=(line.querySelector('[data-open]')||{}).dataset.open;const s=dx>0?'ok':'no';line.style.transform='translateX('+(dx>0?110:-110)+'%)';vib(dx>0?[12,30,12]:25);setTimeout(()=>{setMark(n,s);save();draw();toast((s==='ok'?'✓ Взяли: ':'✕ Не берёт: ')+n);},180);}
+ else{line.style.transform='';setTimeout(()=>{delete w.dataset.sw;},200);}});
+document.addEventListener('click',e=>{if(sup&&e.target.closest('.rowline')){e.stopPropagation();e.preventDefault();}},true);
+})();
+
+/* очередь «без отметки» */
+function queueList(){const r=TABS.find(x=>x.id===tab);if(!r||r.id==='pay')return[];return r.cl.filter(c=>!mark(c.n).s);}
+function drawQ(){let b=document.getElementById('qbtn');const L=queueList(),ph=L.filter(firstPhone).length;if(!b)return;b.hidden=!L.length||!!query.trim();b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.6A8 8 0 1 1 21 12z"/></svg>Без отметки: '+L.length+' · написать по очереди';}
+function runQueue(){const L=queueList();if(!L.length){toast('Все точки отмечены 👍');return;}let i=0;
+ function show(){if(i>=L.length){closeSheet();toast('Очередь пройдена');draw();return;}const c=L[i],ph=firstPhone(c),grp=c.p&&c.p.includes('групп');
+  const v=sheet('<div class="bs-k">Без отметки · '+(i+1)+' из '+L.length+'</div><div class="bs-bar"><i style="width:'+Math.round(i/L.length*100)+'%"></i></div><div class="bs-h">'+esc(c.n)+'</div><p class="bs-s">'+(grp?'Заявку дают в группе':ph?'+'+ph:'Телефона нет')+'</p>'+
+  (ph?greetOrder().map((g,k)=>'<button class="bs-o max" data-g="'+k+'"><i>M</i><span>'+g[1]+'</span></button>').join(''):'')+
+  '<div class="bs-row"><button class="ok" data-q="ok">✓ Взяли</button><button class="no" data-q="no">✕ Не берёт</button></div><div class="bs-row"><button data-q="skip">Пропустить</button><button class="pr" data-q="close">Готово</button></div>');
+  v.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>openMax(greetOrder()[+b.dataset.g][1],ph));
+  v.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const q=b.dataset.q;if(q==='close'){closeSheet();draw();return;}if(q==='ok'||q==='no'){setMark(c.n,q);save();vib(12);}i++;show();});}
+ show();}
+
+/* отчёт */
+function repRoute(r){const ok=r.cl.filter(c=>mark(c.n).s==='ok'),no=r.cl.filter(c=>mark(c.n).s==='no'),left=r.id==='etc'?[]:r.cl.filter(c=>!mark(c.n).s);return{ok,no,left};}
+function repText(id){const routes=DATA.routes.filter(r=>id==='all'?true:r.id===id);const L=[];let T={ok:0,no:0,left:0};
+ routes.forEach(r=>{const x=repRoute(r);if(id==='all'&&!x.ok.length&&!x.no.length&&(r.id==='etc'))return;T.ok+=x.ok.length;T.no+=x.no.length;T.left+=x.left.length;
+  L.push('',r.name+(r.sub?' ('+r.sub+')':'')+' — '+x.ok.length+' / '+x.no.length+' / '+x.left.length);
+  if(x.ok.length)L.push('✅ взяли ('+x.ok.length+'): '+x.ok.map(c=>c.n).join('; '));
+  if(x.no.length)L.push('❌ не берут ('+x.no.length+'): '+x.no.map(c=>c.n).join('; '));
+  if(x.left.length)L.push('⏳ не ответили ('+x.left.length+'): '+x.left.map(c=>c.n).join('; '));});
+ const head=['Отчёт · '+state.date+' · '+(id==='all'?'все маршруты':routes[0].name),'Итого: взяли '+T.ok+' · не берут '+T.no+' · не ответили '+T.left];
+ return{txt:head.concat(L).join('\n'),T};}
+function openReport(id){id=id||'all';const R=repText(id);const opts=[{id:'all',name:'Все маршруты'}].concat(DATA.routes.map(r=>({id:r.id,name:r.name})));
+ const v=sheet('<div class="bs-k">Отчёт за '+state.date+'</div><div class="bs-h">Отчёт</div><div class="bs-chips">'+opts.map(o=>'<button data-r="'+o.id+'" aria-pressed="'+(o.id===id)+'">'+esc(o.name)+'</button>').join('')+'</div><div class="bs-tot"><span class="a">Взяли '+R.T.ok+'</span><span class="b">Не берут '+R.T.no+'</span><span class="c">Не ответили '+R.T.left+'</span></div><pre class="bs-pre">'+esc(R.txt)+'</pre><div class="bs-row"><button data-a="copy">Скопировать</button><button class="pr" data-a="max">Отправить в MAX</button></div>');
+ v.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>openReport(b.dataset.r));
+ v.querySelector('[data-a=copy]').onclick=()=>{copyTxt(R.txt);toast('Отчёт скопирован');};
+ v.querySelector('[data-a=max]').onclick=()=>{copyTxt(R.txt);openMax(R.txt);};}
+$('#rep').onclick=()=>openReport(tab!=='all'&&tab!=='pay'&&DATA.routes.some(r=>r.id===tab)?tab:'all');
+document.addEventListener('click',e=>{if(e.target.closest('#qbtn'))runQueue();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+
+draw();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
 </script>
 </body>
 </html>
