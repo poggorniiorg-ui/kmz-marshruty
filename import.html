@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru" data-theme="dark">
 <head>
+<script>(function(){if(/github\.io$/.test(location.hostname)){var f=location.pathname.split('/').pop()||'';location.replace('https://glistening-narwhal-c13cfe.netlify.app/'+f+location.search+location.hash)}})();</script>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0E1216">
@@ -77,9 +79,6 @@ a.back{color:var(--muted);font-size:14.5px;display:inline-block;margin-bottom:16
 </div>
 
 <script>
-/* Адрес сервера: на Netlify — свой домен, на GitHub Pages — сервер на Netlify. */
-const API = (/netlify\.app$/.test(location.hostname) || location.hostname === 'localhost')
-  ? '' : 'https://glistening-narwhal-c13cfe.netlify.app';
 const ROUTES=[{id:'1',name:'1 Краснодар'},{id:'2',name:'2 Краснодар'},{id:'3',name:'3 Краснодар'},
 {id:'4',name:'4 Краснодар'},{id:'5',name:'5 Краснодар'},{id:'6',name:'6 Побережье'}];
 let groups={}, photoFiles={};
@@ -169,7 +168,7 @@ document.getElementById('photoOnly').onclick=async()=>{
   document.getElementById('log').textContent='';
   if(!pass){log('Впишите пароль в шаге 1');return}
   log('Проверяю пароль…');
-  const auth=await fetch(API+'/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass})}).then(r=>r.json()).catch(()=>({}));
+  const auth=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass})}).then(r=>r.json()).catch(()=>({}));
   if(!auth.ok){log('Пароль не подошёл');return}
   const files={}; [...document.getElementById('photos').files].forEach(f=>files[f.name]=f);
   if(!Object.keys(files).length){log('Сначала выберите фото в шаге 3');return}
@@ -177,20 +176,20 @@ document.getElementById('photoOnly').onclick=async()=>{
   log('Файлов выбрано: '+Object.keys(files).length);
   let total=0;
   for(const r of ROUTES){
-    const cur=await fetch(API+'/api/route?m='+r.id,{cache:'no-store',headers:{'x-pass':pass}}).then(x=>x.json()).catch(()=>({stops:[]}));
+    const cur=await fetch('/api/route?m='+r.id,{cache:'no-store',headers:{'x-pass':pass}}).then(x=>x.json()).catch(()=>({stops:[]}));
     const stops=cur.stops||[]; let n=0;
     for(const st of stops){
       if(st.photo||!st.pf||!files[st.pf]) continue;
       try{
         const data=await shrink(files[st.pf]);
         if(!data) continue;
-        const res=await fetch(API+'/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},body:JSON.stringify({data})});
+        const res=await fetch('/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},body:JSON.stringify({data})});
         const d=await res.json(); if(d.id){st.photo=d.id;n++}
       }catch(e){}
       if(n&&n%10===0) log('  '+r.name+': '+n);
     }
     if(n){
-      await fetch(API+'/api/route?m='+r.id,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+      await fetch('/api/route?m='+r.id,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
         body:JSON.stringify({stops,day:cur.day||null})});
       log(r.name+': привязано фото '+n);
       total+=n;
@@ -246,7 +245,7 @@ document.getElementById('dumpBtn').onclick=async()=>{
 document.getElementById('go').onclick=async()=>{
   const pass=document.getElementById('pass').value.trim();
   if(!pass){alert('Впишите пароль');return}
-  const auth=await fetch(API+'/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass})}).then(r=>r.json()).catch(()=>({}));
+  const auth=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass})}).then(r=>r.json()).catch(()=>({}));
   if(!auth.ok){alert('Пароль не подошёл');return}
   const mode=document.getElementById('mode').value;
   const map={};
@@ -256,7 +255,7 @@ document.getElementById('go').onclick=async()=>{
 
   for(const [label,rid] of Object.entries(map)){
     log('\n— '+label+' → маршрут '+rid);
-    const cur=await fetch(API+'/api/route?m='+rid,{cache:'no-store',headers:{'x-pass':pass}}).then(r=>r.json()).catch(()=>({stops:[]}));
+    const cur=await fetch('/api/route?m='+rid,{cache:'no-store',headers:{'x-pass':pass}}).then(r=>r.json()).catch(()=>({stops:[]}));
     const base=mode==='replace'?[]:(cur.stops||[]);
     let n=0, ph=0;
     for(const p of groups[label]){
@@ -267,7 +266,7 @@ document.getElementById('go').onclick=async()=>{
         try{
           const data=await shrink(f);
           if(data){
-            const r=await fetch(API+'/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},body:JSON.stringify({data})});
+            const r=await fetch('/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},body:JSON.stringify({data})});
             const d=await r.json(); if(d.id){stop.photo=d.id;ph++}
           }
         }catch(e){}
@@ -275,7 +274,7 @@ document.getElementById('go').onclick=async()=>{
       base.push(stop);
       if(n%10===0) log('  точек: '+n);
     }
-    const w=await fetch(API+'/api/route?m='+rid,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+    const w=await fetch('/api/route?m='+rid,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
       body:JSON.stringify({stops:base,day:cur.day||null})});
     log(w.ok?`  готово: ${n} точек, фото ${ph}`:'  ОШИБКА записи');
   }
