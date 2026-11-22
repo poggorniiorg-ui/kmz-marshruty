@@ -1,4 +1,8 @@
 import { getStore } from '@netlify/blobs';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { makeRunHandler } from '../lib/runs.mjs';
+
+const handleDispatch = makeRunHandler(getStore);
 
 /* Сервер приложения «Маршруты КМЗ №1».
    Разделы: /api/auth, /api/access, /api/keys, /api/route,
@@ -24,7 +28,12 @@ const corsHeaders = (req) => {
   };
 };
 
-const PASS = () => process.env.ADMIN_PASS || "1";
+const PASS = () => process.env.ADMIN_PASS || '';
+const isAdmin = value => {
+  const expected = Buffer.from(PASS());
+  const given = Buffer.from(typeof value === 'string' ? value : '');
+  return expected.length > 0 && expected.length === given.length && timingSafeEqual(expected, given);
+};
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
@@ -35,19 +44,22 @@ const handle = async (req) => {
   const routes = getStore("kmz-routes");
   const keysStore = getStore("kmz-keys");
   const photos = getStore("kmz-photos");
-  const authed = () => (req.headers.get("x-pass") || "") === PASS();
+  const authed = () => isAdmin(req.headers.get("x-pass"));
   const getKeys = async () => await keysStore.get("keys", { type: "json" }) || null;
   const allowed = async (m) => {
     if (authed()) return true;
     const keys = await getKeys();
-    if (!keys) return true;
+    if (!keys) return false;
     const k = url.searchParams.get("k") || "";
     return !!k && (k === keys.all || k === keys["r" + m]);
   };
   try {
+    if (["dispatch","dispatch-photo","dispatch-status"].includes(path))
+      return await handleDispatch({req,url,path,authed,routes,json});
     if (path === "auth" && req.method === "POST") {
+      if (!PASS()) return json({ error: "Администратор должен настроить ADMIN_PASS в Netlify" }, 503);
       const { pass } = await req.json();
-      return json({ ok: pass === PASS() });
+      return json({ ok: isAdmin(pass) });
     }
     if (path === "route") {
       const m = url.searchParams.get("m") || "1";
@@ -97,7 +109,8 @@ const handle = async (req) => {
     }
     if (path === "access" && req.method === "GET") {
       const keys = await getKeys();
-      if (authed() || !keys) return json({ routes: ["1", "2", "3", "4", "5", "6"], admin: authed() });
+      if (authed()) return json({ routes: ["1", "2", "3", "4", "5", "6"], admin: true });
+      if (!keys) return json({ routes: [] });
       const k = url.searchParams.get("k") || "";
       if (!k) return json({ routes: [] });
       if (k === keys.all) return json({ routes: ["1", "2", "3", "4", "5", "6"] });
@@ -108,7 +121,7 @@ const handle = async (req) => {
     if (path === "keys") {
       if (!authed()) return json({ error: "\u041D\u0443\u0436\u0435\u043D \u043F\u0430\u0440\u043E\u043B\u044C" }, 401);
       if (req.method === "POST") {
-        const rnd = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+        const rnd = () => randomBytes(18).toString("base64url");
         const keys = { all: rnd() };
         for (let i = 1; i <= 6; i++) keys["r" + i] = rnd();
         await keysStore.setJSON("keys", keys);
@@ -122,6 +135,7 @@ const handle = async (req) => {
       const stats = getStore("kmz-status");
       const visits = getStore("kmz-visits");
       if (req.method === "GET") {
+        if (!await allowed(m)) return json({ error: "Нет доступа" }, 403);
         const key = "st-" + m + "-" + d;
         const st = await stats.get(key, { type: "json" });
         return json({ st: st || {} });
@@ -206,7 +220,7 @@ const handle = async (req) => {
     }
     return json({ error: "\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u0437\u0430\u043F\u0440\u043E\u0441" }, 404);
   } catch (e) {
-    return json({ error: String(e && e.message ? e.message : e) }, 500);
+    return json({ error: "Не удалось выполнить запрос. Повторите позже." }, 500);
   }
 };
 

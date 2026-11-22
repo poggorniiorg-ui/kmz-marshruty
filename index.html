@@ -282,6 +282,7 @@ body{letter-spacing:-.005em}
 <div class="sheet" id="sheet"><div class="card" id="card"></div></div>
 <div class="toast" id="toast"></div>
 
+<script src="dispatch-admin.js"></script>
 <script>
 window.onerror=function(m,src,l){
   var el=document.getElementById('list');
@@ -344,9 +345,10 @@ async function loadStatic(m){
   return await r.json();
 }
 
+const cacheKey=m=>'kmz_cache_v2_'+m+'_'+(pass?'admin':(akey||'public'));
 function showCached(){
   try{
-    const c=JSON.parse(LS.get('cache_'+route)||'null');
+    const c=JSON.parse(LS.get(cacheKey(route))||'null');
     if(c&&c.stops&&c.stops.length){
       list=c.stops; plan=c.day||null; tpl=c.tpl||null;
       if(!planIds()) tab='all';
@@ -358,6 +360,7 @@ function showCached(){
 async function loadRoute(){
   loading=true;
   const hadCache=showCached();
+  const requested=route;
   try{
     const ctl=new AbortController(); const tmo=setTimeout(()=>ctl.abort(),9000);
     const [r,s2]=await Promise.all([
@@ -365,12 +368,15 @@ async function loadRoute(){
       fetch('/api/status?m='+route+'&d='+today()+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json()).catch(()=>({st:{}}))
     ]);
     clearTimeout(tmo);
-    if(r.error){if(!hadCache) noAccess(r.error); else{offline=true;render()} return}
+    if(requested!==route) return;
+    if(r.error){LS.set(cacheKey(requested),null);offline=false;noAccess(r.error);return}
     list=r.stops||[]; plan=r.day||null; tpl=r.tpl||null; st=s2.st||{}; offline=false; visits=null;
-    LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
+    LS.set(cacheKey(route),JSON.stringify({stops:list,day:plan,tpl}));
   }catch(e){
-    // сервера нет — пробуем файлы репозитория
+    if(requested!==route) return;
+    // Do not use public data as fallback on the protected Netlify origin.
     try{
+      if(!location.hostname.endsWith('.github.io')) throw new Error('unavailable');
       const d=await loadStatic(route);
       if(d&&d.stops){
         staticMode=true; offline=false;
@@ -378,13 +384,13 @@ async function loadRoute(){
         st=readLocalStatus();
         if(!planIds()) tab='all';
         loading=false;
-        LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
+        LS.set(cacheKey(route),JSON.stringify({stops:list,day:plan,tpl}));
         render(); return;
       }
     }catch(_){}
     offline=true;
     if(!hadCache){
-      try{const c=JSON.parse(LS.get('cache_'+route)||'{}');list=c.stops||[];plan=c.day||null;tpl=c.tpl||null}catch(_){list=[];plan=null}
+      try{const c=JSON.parse(LS.get(cacheKey(route))||'{}');list=c.stops||[];plan=c.day||null;tpl=c.tpl||null}catch(_){list=[];plan=null}
     }
     loading=false;
     if(!list.length){
@@ -404,7 +410,7 @@ async function push(){
     body:JSON.stringify({stops:list,day:plan,tpl})});
   if(!r.ok){const e=await r.json().catch(()=>({}));dirty=true;render();throw new Error(e.error||'Не сохранилось')}
   dirty=false; allRoutes=null;
-  LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
+  LS.set(cacheKey(route),JSON.stringify({stops:list,day:plan,tpl}));
 }
 function readLocalStatus(){
   try{return JSON.parse(LS.get('st_'+route+'_'+today())||'{}')}catch(e){return {}}
@@ -419,9 +425,10 @@ async function setStatus(id,done,reason,clear){
   saveLocalStatus();
   if(staticMode) return;
   try{
-    await fetch('/api/status?m='+route+'&d='+today()+kq('&'),{method:'POST',
-      headers:{'content-type':'application/json'},
+    const res=await fetch('/api/status?m='+route+'&d='+today()+kq('&'),{method:'POST',
+      headers:{...hdr(),'content-type':'application/json'},
       body:JSON.stringify({id,done,reason,clear})});
+    if(!res.ok) throw new Error('status not saved');
   }catch(e){toast('Отметка не ушла — нет связи')}
 }
 async function loadAll(){
@@ -942,6 +949,7 @@ document.getElementById('menuBtn').onclick=()=>{
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
   <h2>Управление</h2>
   <div style="margin-top:16px">
+    ${['2','3'].includes(route)?'<div class="menu-item" onclick="openDispatch()"><span class="ic">↗</span>Рейс водителю · выбрать точки и получить ссылку</div><div class="menu-item" onclick="openRouteImport()"><span class="ic">⇪</span>Загрузить сверенный список 2/3</div>':''}
     <div class="menu-item" onclick="planForm()"><span class="ic">📅</span>План на день и шаблоны${ids?' · '+ids.length:''}</div>
     <div class="menu-item" onclick="phonesForm()"><span class="ic">📞</span>Заполнить телефоны</div>
     <div class="menu-item" onclick="autoCoords()"><span class="ic">📍</span>Найти координаты (${list.filter(s=>!s.lat).length})</div>
@@ -966,7 +974,7 @@ function planForm(){
     <button class="btn flat" onclick="planClear()">Снять план</button></div>
   <div class="field" style="margin-top:22px"><label>Список клиентов на сегодня</label>
     <textarea id="planlist" style="min-height:150px" placeholder="Курпитко Атарбекова&#10;Молов Минская&#10;Титаренко"></textarea>
-    <div class="hint">Вставьте фамилии из таблицы, по одной в строке. Отмечу их в плане и выстрою порядок объезда от ближней к дальней.</div>
+    <div class="hint">Вставьте фамилии из таблицы, по одной в строке. Порядок объезда сохранится как в списке.</div>
     <div class="row"><button class="btn accent" onclick="planFromList()">Составить маршрут на день</button></div></div>
   <div class="field" style="margin-top:22px"><label>Сохранить нынешний план как шаблон</label>
     <select id="f_tpl">${days.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
@@ -974,7 +982,7 @@ function planForm(){
       <button class="btn flat" onclick="tplApply()">Применить</button></div>
     <div class="hint">${tpl?('Готовые шаблоны: '+Object.keys(tpl).join(', ')):'Шаблонов пока нет.'}</div></div>`;
 }
-async function planAll(){plan={date:today(),ids:ordered().map(s=>s.id)};tab='day';render();closeSheet();
+async function planAll(){plan={date:today(),ids:list.map(s=>s.id)};tab='day';render();closeSheet();
   try{await push();toast('Отмечены все точки')}catch(e){toast(e.message)}}
 async function planClear(){plan=null;tab='all';render();closeSheet();
   try{await push();toast('План снят')}catch(e){toast(e.message)}}
@@ -1022,14 +1030,12 @@ async function planFromList(){
     else miss.push(r);
   });
   if(!found.length&&!amb.length){toast('Ни одна строка не совпала');return}
-  const withC=found.filter(s=>s.lat), without=found.filter(s=>!s.lat);
-  const order=withC.length>1?optimize(withC,null):withC;
-  plan={date:today(),ids:order.concat(without).map(s=>s.id)};
+  plan={date:today(),ids:found.map(s=>s.id)};
   tab='day'; render();
   try{await push()}catch(e){toast(e.message)}
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
     <h2>План на сегодня</h2>
-    <div class="steps">В маршруте: <b>${found.length}</b> точек${withC.length>1?` · порядок выстроен, ${Math.round(totalKm(order))} км`:''}${without.length?`<br>Без координат, ушли в конец: ${without.length}`:''}${miss.length?`<br><br><span style="color:var(--warn)">Не нашлись:</span><br>${miss.map(esc).join('<br>')}`:''}
+    <div class="steps">В маршруте: <b>${found.length}</b> точек · порядок исходного списка сохранён${miss.length?`<br><br><span style="color:var(--warn)">Не нашлись:</span><br>${miss.map(esc).join('<br>')}`:''}
     ${amb.length?`<br><br><span style="color:var(--warn)">Совпало несколько — уточните адрес:</span><br>${amb.map(a=>esc(a.q)+' → '+a.list.map(esc).join(' / ')).join('<br>')}`:''}</div>
     <div class="hint">Неоднозначные не добавлены — отметьте их галочкой вручную. Порядок правится ручкой ⠿ на вкладке «Сегодня».</div>`;
 }
@@ -1200,7 +1206,7 @@ document.getElementById('adminBtn').onclick=async()=>{
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
     <h2>Редактирование</h2>
     <div class="field" style="margin-top:18px"><label>Пароль</label>
-      <input id="f_pass" type="password" inputmode="numeric"></div>
+      <input id="f_pass" type="password" autocomplete="current-password"></div>
     <div class="row"><button class="btn accent" onclick="tryPass(document.getElementById('f_pass').value)">Войти</button></div>`;
   document.getElementById('sheet').classList.add('open');
   setTimeout(()=>{const el=document.getElementById('f_pass');el&&el.focus()},150);
@@ -1328,6 +1334,7 @@ function ensureLeaflet(){
 }
 
 document.getElementById('shareBtn').onclick=async()=>{
+  if(admin&&['2','3'].includes(route)){openDispatch();return;}
   const base=location.origin+location.pathname.replace(/[^/]*$/,'');
   if(!admin){
     const url=base+'r'+route+'.html'+kq('?');
