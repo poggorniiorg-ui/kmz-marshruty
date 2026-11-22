@@ -29,11 +29,21 @@
     const c=emptyModal('Рейс водителю · '+rName(m));
     element('p','Отметьте только точки этого рейса. Порядок можно поменять до отправки. После создания ссылки список в ней не меняется.',c);
     const date=element('input','',c); date.type='date';date.value=today();date.setAttribute('aria-label','Дата рейса');
-    const bar=element('div','',c);bar.className='row';
+    const tools=element('div','',c);tools.className='dispatch-tools';
+    const search=element('input','',tools);search.type='search';search.placeholder='Поиск по названию или адресу';search.setAttribute('aria-label','Поиск точки для рейса');
+    const bar=element('div','',tools);bar.className='row';
+    const hint=element('p','',tools);hint.className='hint';hint.setAttribute('role','status');
     const rows=element('div','',c);
+    let term='';
+    search.addEventListener('input',()=>{term=search.value.trim().toLocaleLowerCase('ru').replace(/ё/g,'е');redraw()});
+    const visible=s=>!term||[s.name,s.addr,s.note].join(' ').toLocaleLowerCase('ru').replace(/ё/g,'е').includes(term);
     function redraw(){
       rows.replaceChildren();
+      const visibleCount=sequence.filter(visible).length;
+      hint.textContent=term?'Найдено: '+visibleCount+'. Чтобы поменять порядок, очистите поиск.':'Всего точек: '+sequence.length;
+      allBtn.disabled=!visibleCount;
       sequence.forEach((s,i)=>{
+        if(!visible(s)) return;
         const row=element('div','',rows);row.className='phrow';
         const lbl=element('label','',row);const input=element('input','',lbl);
         input.type='checkbox';input.checked=checked.has(s.id);
@@ -43,14 +53,14 @@
         for(const [label,d] of [['Выше',-1],['Ниже',1]]){
           const b=button(label,controls,()=>{[sequence[i],sequence[i+d]]=[sequence[i+d],sequence[i]];redraw();});
           b.setAttribute('aria-label',s.name+' '+label.toLowerCase());
-          b.disabled=i+d<0||i+d>=sequence.length;
+          b.disabled=Boolean(term)||i+d<0||i+d>=sequence.length;
         }
       });
       make.disabled=!checked.size;make.textContent='Создать ссылку · '+checked.size;
     }
-    button('Отметить все',bar,()=>{stops.forEach(s=>checked.add(s.id));redraw()});
+    const allBtn=button('Отметить показанные',bar,()=>{stops.filter(visible).forEach(s=>checked.add(s.id));redraw()});
     button('Снять отметки',bar,()=>{checked.clear();redraw()});
-    const report=element('p','',c);report.setAttribute('role','status');
+    const report=element('div','',c);report.setAttribute('role','status');
     const make=button('Создать ссылку',c,async()=>{
       make.disabled=true;report.textContent='Создаю рейс…';
       try{
@@ -58,7 +68,7 @@
         const url=new URL('./driver.html',location.href);url.hash='t='+encodeURIComponent(data.token);
         const item={id:data.id,route:m,date:date.value,expires:data.expires,count:data.count};
         LS.set('kmz_recent_dispatches',JSON.stringify([item,...recent()].slice(0,15)));
-        rows.querySelectorAll('input,button').forEach(x=>x.disabled=true);bar.querySelectorAll('button').forEach(x=>x.disabled=true);date.disabled=true;
+        rows.querySelectorAll('input,button').forEach(x=>x.disabled=true);tools.querySelectorAll('input,button').forEach(x=>x.disabled=true);date.disabled=true;
         report.replaceChildren();element('b','Рейс готов · '+data.count+' точек',report);
         element('p','Ссылка действует до '+new Date(data.expires).toLocaleString('ru-RU')+'. Отправляйте только нужному водителю.',report);
         const field=element('input','',report);field.value=url.href;field.readOnly=true;field.setAttribute('aria-label','Ссылка водителю');field.style.width='100%';
@@ -68,6 +78,7 @@
         button('Новый рейс',report,()=>openDispatch());
       }catch(e){report.textContent=e.message;make.disabled=false;}
     });
+    bar.append(make);c.insertBefore(report,rows);
     redraw();
     const prev=recent().filter(x=>x.route===m&&x.expires>Date.now());
     if(prev.length)element('h3','Недавние рейсы на этом устройстве',c);

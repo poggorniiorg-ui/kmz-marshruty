@@ -215,6 +215,29 @@ body{letter-spacing:-.005em}
 .meta+.bar,.bar{color:var(--head)}
 .bar.admin{color:var(--accent)}.bar.offline{color:var(--warn)}
 @media(min-width:1000px){header,.progress,.meta,.bar,main{max-width:880px;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}.bar{max-width:848px}.dock{left:300px;padding-left:max(16px,calc((100vw - 300px - 880px)/2 + 16px));padding-right:max(16px,calc((100vw - 300px - 880px)/2 + 16px))}}
+/* Dialogs sit above the permanent desktop sidebar and stay inside the visible viewport. */
+.sheet{z-index:80;justify-content:center;overscroll-behavior:contain}
+.sheet .card{animation:none;max-width:760px;max-height:calc(100dvh - 12px);overscroll-behavior:contain;scroll-padding:18px;overflow-wrap:anywhere}
+body:has(.sheet.open){overflow:hidden}
+.sheet .card:has(.login-form){max-width:440px}
+.login-form{display:grid;gap:15px}
+.login-form p{margin:0;line-height:1.5;font-size:15px}
+.login-form .field{margin:0}
+.login-form .field label{color:var(--text);font-size:15px;text-transform:none;letter-spacing:normal}
+.password-row{display:flex;align-items:stretch;gap:7px;min-width:0}
+.password-row input{min-width:0;flex:1;font-size:16px}
+.password-row button{flex:none;min-height:46px;border:1px solid var(--line);border-radius:10px;padding:0 11px;background:var(--surface2)}
+.login-form .btn{min-height:46px}
+.login-error{color:var(--warn);font-size:14px}
+.login-error:empty{display:none}
+.login-form button:focus-visible,.login-form input:focus-visible,.login-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(min-width:700px){.sheet.open{align-items:center;padding:24px}.sheet .card{max-height:calc(100dvh - 48px);border-radius:22px;padding:25px 26px;box-shadow:0 20px 80px rgba(0,0,0,.28)}}
+@media(max-width:699px){.sheet .card:has(.login-form){max-width:none}.sheet .card{padding-left:16px;padding-right:16px}.sheet .card h2{font-size:22px}}
+.dispatch-tools{position:sticky;top:0;z-index:2;background:var(--sheet);padding:10px 0 8px;border-bottom:1px solid var(--line)}
+.dispatch-tools input{width:100%;min-width:0;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.dispatch-tools .row{flex-wrap:wrap}
+.dispatch-tools .row .mini{margin-top:0}
+.dispatch-tools .row .mini:last-child:enabled{background:var(--solid);color:var(--onsolid)}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap">
 </head>
@@ -1209,15 +1232,44 @@ document.getElementById('adminBtn').onclick=async()=>{
   if(staticMode){toast('Этот адрес только для просмотра. Правки — в основном приложении');return}
   if(admin){exitAdmin();return}
   if(pass&&await tryPass(pass)) return;
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Редактирование</h2>
-    <div class="field" style="margin-top:18px"><label>Пароль</label>
-      <input id="f_pass" type="password" autocomplete="current-password"></div>
-    <div class="row"><button class="btn accent" onclick="tryPass(document.getElementById('f_pass').value)">Войти</button></div>`;
+  const card=document.getElementById('card');
+  card.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="login-title" aria-describedby="login-info">
+    <button type="button" class="close login-close" aria-label="Закрыть окно входа">✕</button>
+    <form id="login-form" class="login-form">
+      <h2 id="login-title">Вход в управление</h2>
+      <p id="login-info">Введите пароль, который вы задали для сайта маршрутов в настройках Netlify (ADMIN_PASS). Это не пароль аккаунта Netlify.</p>
+      <div class="field"><label for="f_pass">Пароль управления маршрутами</label>
+        <div class="password-row"><input id="f_pass" name="password" type="password" autocomplete="current-password" required>
+          <button id="pass-toggle" type="button" aria-controls="f_pass">Показать</button></div></div>
+      <p class="login-error" id="login-error" role="alert"></p>
+      <button id="login-submit" class="btn accent" type="submit">Войти</button>
+    </form></section>`;
+  const form=card.querySelector('form'), input=form.elements.password, toggle=form.querySelector('#pass-toggle');
+  const message=form.querySelector('#login-error'), submit=form.querySelector('#login-submit');
+  const controls=[card.querySelector('.login-close'),input,toggle,submit];
+  const close=()=>{input.value='';closeSheet();document.getElementById('adminBtn').focus({preventScroll:true})};
+  controls[0].onclick=close;
+  form.closest('section').addEventListener('keydown',e=>{
+    if(e.key==='Escape'){e.preventDefault();close()}
+    if(e.key==='Tab' && e.shiftKey && document.activeElement===controls[0]){e.preventDefault();submit.focus()}
+    if(e.key==='Tab' && !e.shiftKey && document.activeElement===submit){e.preventDefault();controls[0].focus()}
+  });
+  toggle.onclick=()=>{
+    const reveal=input.type==='password';
+    input.type=reveal?'text':'password';toggle.textContent=reveal?'Скрыть':'Показать';
+  };
+  form.onsubmit=async e=>{
+    e.preventDefault();if(submit.disabled)return;
+    submit.disabled=true;message.textContent='';
+    try{const ok=await tryPass(input.value,msg=>{message.textContent=msg});if(ok)input.value=''}
+    finally{submit.disabled=false}
+  };
   document.getElementById('sheet').classList.add('open');
-  setTimeout(()=>{const el=document.getElementById('f_pass');el&&el.focus()},150);
+  card.scrollTop=0;
+  if(matchMedia('(pointer:fine)').matches) input.focus({preventScroll:true});
+  else controls[0].focus({preventScroll:true});
 };
-async function tryPass(p){
+async function tryPass(p,report=toast){
   if(!p) return false;
   try{
     const r=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass:p})});
@@ -1226,8 +1278,10 @@ async function tryPass(p){
       myRoutes=null;akey='';try{localStorage.removeItem('kmz_k')}catch(e){}
       fillPicker();document.getElementById('dock').style.display='flex';
       await loadRoute();try{initRoutes()}catch(e){}return true}
-    toast('Пароль не подошёл');
-  }catch(e){toast('Нет связи с сервером')}
+    if(r.status===503)report('Пароль управления ещё не задан в Netlify.');
+    else if(!r.ok)report('Не удалось войти. Попробуйте ещё раз.');
+    else report('Пароль не подошёл. Проверьте пароль управления маршрутами.');
+  }catch(e){report('Нет связи с сервером. Попробуйте ещё раз.')}
   return false;
 }
 function exitAdmin(){admin=false;setPass('');selClear();render()}

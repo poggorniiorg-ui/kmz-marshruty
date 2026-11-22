@@ -1,7 +1,7 @@
 /* Кэш приложения. ВАЖНО: фото лежат в отдельном хранилище,
    которое НЕ чистится при обновлении версии — иначе после каждой
    заливки телефон качал бы все фото заново. */
-const V   = 'kmz-app-v20';
+const V   = 'kmz-app-v21';
 const PIC = 'kmz-photos';          // версию не менять никогда
 const SHELL = ['./','./index.html','./import.html','./manifest.json','./icon.svg','./dispatch-admin.js','./driver.html','./driver.js'];
 
