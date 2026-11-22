@@ -90,7 +90,7 @@ main{padding:8px 16px}
 .selbar button{background:var(--surface2);border-radius:11px;padding:11px 13px;font-size:14.5px}
 .selbar button.warn{color:var(--warn)}
 
-.sheet{position:fixed;inset:0;z-index:40;background:rgba(6,9,12,.5);display:none;align-items:flex-end;backdrop-filter:blur(2px)}
+.sheet{position:fixed;inset:0;z-index:50;background:rgba(6,9,12,.5);display:none;align-items:flex-end;backdrop-filter:blur(2px)}
 .sheet.open{display:flex}
 .card{position:relative;background:var(--sheet);width:100%;max-height:92vh;overflow-y:auto;border-radius:24px 24px 0 0;padding:22px 18px calc(env(safe-area-inset-bottom) + 18px);animation:up .22s cubic-bezier(.2,.8,.3,1)}
 @keyframes up{from{transform:translateY(26px)}to{transform:translateY(0)}}
@@ -126,6 +126,7 @@ main{padding:8px 16px}
 .phrow{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
 .phrow span{flex:1;min-width:0;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .phrow input{width:150px;background:var(--surface2);border:none;border-radius:10px;padding:10px}
+.phrow label{flex:1;min-width:0;display:flex;align-items:flex-start;gap:8px}.phrow input[type=checkbox]{width:20px;height:20px;flex:none;margin:2px 0 0;padding:0;accent-color:var(--accent)}
 #map{width:100%;height:70vh;border-radius:16px;overflow:hidden;background:var(--surface2)}
 .leaflet-container{background:var(--surface2)!important;font:inherit}
 .pin{background:var(--accent);color:#12191F;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-size:12px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.3)}
@@ -474,6 +475,7 @@ async function initRoutes(){
       const c=new AbortController(); const t=setTimeout(()=>c.abort(),6000);
       const d=await fetch('/api/access'+kq('?'),{cache:'no-store',headers:hdr(),signal:c.signal}).then(x=>x.json());
       clearTimeout(t);
+      if(pass && d.admin===true){admin=true;render();}
       if(Array.isArray(d.routes)&&d.routes.length&&d.routes.length<ROUTES.length) myRoutes=d.routes.slice().sort();
     }catch(e){}
   }
@@ -1140,16 +1142,16 @@ function restoreForm(){
   <h2>Восстановить</h2>
   <div class="field" style="margin-top:16px"><label>Файл копии</label>
     <input type="file" id="f_restore" accept=".json,application/json">
+    <details><summary>Или вставьте JSON из копии</summary><textarea id="f_restore_text" aria-label="JSON из копии" rows="4" spellcheck="false"></textarea></details>
     <div class="hint">Подходит и копия одного маршрута, и копия всех сразу. Текущее содержимое заменится.</div></div>
   <div class="row"><button class="btn accent" onclick="restore()">Загрузить</button></div>`;
 }
-function restore(){
+async function restore(){
   const f=document.getElementById('f_restore').files[0];
-  if(!f){toast('Выберите файл');return}
-  const fr=new FileReader();
-  fr.onload=async()=>{
-    try{
-      const d=JSON.parse(fr.result);
+  const pasted=document.getElementById('f_restore_text').value.trim();
+  if(!f&&!pasted){toast('Выберите файл или вставьте JSON');return}
+  try{
+      const d=JSON.parse(f?await f.text():pasted);
       if(d.all){
         if(!confirm('Заменить содержимое всех маршрутов?')) return;
         let n=0;
@@ -1162,12 +1164,16 @@ function restore(){
       }else{
         if(!Array.isArray(d.stops)) throw new Error('Это не копия маршрута');
         if(!confirm('Заменить '+list.length+' точек на '+d.stops.length+'?')) return;
-        list=d.stops; plan=d.day||null; tpl=d.tpl||null;
-        render(); closeSheet(); await push(); toast('Восстановлено: '+list.length);
+        const known=new Set();
+        if(d.stops.length>300 || d.stops.some(s=>!s || !/^[a-zA-Z0-9_-]{1,100}$/.test(s.id||'') || typeof s.name!=='string' || !s.name.trim() || known.has(s.id) || !known.add(s.id)))
+          throw new Error('В копии есть дубли или записи без идентификатора/названия');
+        const m=route;
+        const r=await fetch('/api/route?m='+encodeURIComponent(m),{method:'POST',
+          headers:{'content-type':'application/json','x-pass':pass},body:JSON.stringify({stops:d.stops,day:d.day||null,tpl:d.tpl||null})});
+        if(!r.ok) throw new Error('Сервер не сохранил маршрут');
+        await loadRoute();closeSheet();toast('Восстановлено: '+d.stops.length);
       }
     }catch(e){toast(e.message)}
-  };
-  fr.readAsText(f);
 }
 async function autoCoords(){
   const todo=list.filter(s=>!s.lat);
