@@ -307,6 +307,7 @@ body:has(.sheet.open){overflow:hidden}
 <div class="toast" id="toast"></div>
 
 <script src="dispatch-admin.js"></script>
+<script src="plan-import.js"></script>
 <script>
 window.onerror=function(m,src,l){
   var el=document.getElementById('list');
@@ -430,7 +431,7 @@ async function loadRoute(){
 async function push(){
   if(staticMode) throw new Error('Правки недоступны: сайт работает из файлов, без сервера');
   const r=await fetch('/api/route?m='+route,{method:'POST',
-    headers:{'content-type':'application/json','x-pass':pass},
+    headers:{'content-type':'application/json',...hdr()},
     body:JSON.stringify({stops:list,day:plan,tpl})});
   if(!r.ok){const e=await r.json().catch(()=>({}));dirty=true;render();throw new Error(e.error||'Не сохранилось')}
   dirty=false; allRoutes=null;
@@ -555,7 +556,7 @@ function render(){
   document.getElementById('adminHint').textContent=(tab==='day'&&ids)?'⠿ — порядок объезда на сегодня':'Тап — правка · ✓ — сегодня · ⋮ — действия';
 
   let html=vis.length?vis.map(s=>row(s,ord.indexOf(s)+1)).join(''):
-    `<div class="empty">${(loading&&!list.length)?'Загружаю маршрут…':(query?'В этом маршруте не найдено':(tab==='day'?(ids?'На сегодня точек не отмечено':'План на сегодня не задан.<br>Все точки — на соседней вкладке.'):'В маршруте пока нет точек'))}</div>`;
+    `<div class="empty">${(loading&&!list.length)?'Загружаю маршрут…':(query?'В этом маршруте не найдено':(tab==='day'?(ids?'На сегодня точек не отмечено':('План на сегодня не задан.<br>Все точки — на соседней вкладке.'+(admin&&['2','3'].includes(route)?'<br><br><button class="mini" onclick="openPlanImport()">Загрузить точки на сегодня</button>':''))):'В маршруте пока нет точек'))}</div>`;
 
   if(query&&query.length>1&&allRoutes&&!myRoutes){
     const other=[];
@@ -647,7 +648,7 @@ async function doBulkMove(mode){
     const d=await fetch('/api/route?m='+to+kq('&'),{cache:'no-store',headers:hdr()}).then(r=>r.json());
     const arr=d.stops||[];
     ids.forEach((id,i)=>{const s=list.find(x=>x.id===id);if(s) arr.push({...s,id:'c'+Date.now().toString(36)+i})});
-    const w=await fetch('/api/route?m='+to,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+    const w=await fetch('/api/route?m='+to,{method:'POST',headers:{'content-type':'application/json',...hdr()},
       body:JSON.stringify({stops:arr,day:d.day||null,tpl:d.tpl||null})});
     if(!w.ok) throw new Error('Не записалось');
     if(mode==='move'){
@@ -919,7 +920,7 @@ async function saveStop(id){
   const file=document.getElementById('f_photo').files[0];
   try{
     if(file){toast('Загружаю фото…');const old=s.photo;s.photo=await uploadPhoto(file);
-      if(old) fetch('/api/photo?id='+encodeURIComponent(old),{method:'DELETE',headers:{'x-pass':pass}}).catch(()=>{})}
+      if(old) fetch('/api/photo?id='+encodeURIComponent(old),{method:'DELETE',headers:hdr()}).catch(()=>{})}
     if(isNew) list.push(s);
     await push(); render(); closeSheet(); toast('Сохранено');
   }catch(e){toast(e.message)}
@@ -935,7 +936,7 @@ function uploadPhoto(file){
         c.width=img.width*k;c.height=img.height*k;
         c.getContext('2d').drawImage(img,0,0,c.width,c.height);
         try{
-          const r=await fetch('/api/photo',{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+          const r=await fetch('/api/photo',{method:'POST',headers:{'content-type':'application/json',...hdr()},
             body:JSON.stringify({data:c.toDataURL('image/jpeg',.72)})});
           const d=await r.json(); d.id?res(d.id):rej(new Error(d.error||'Фото не загрузилось'));
         }catch(e){rej(new Error('Фото не загрузилось — проверьте связь'))}
@@ -976,6 +977,7 @@ document.getElementById('menuBtn').onclick=()=>{
   <div style="margin-top:16px">
     ${['2','3'].includes(route)?'<div class="menu-item" onclick="openDispatch()"><span class="ic">↗</span>Рейс водителю · выбрать точки и получить ссылку</div><div class="menu-item" onclick="openRouteImport()"><span class="ic">⇪</span>Загрузить сверенный список 2/3</div>':''}
     <div class="menu-item" onclick="planForm()"><span class="ic">📅</span>План на день и шаблоны${ids?' · '+ids.length:''}</div>
+  ${['2','3'].includes(route)?'<div class="menu-item" onclick="openPlanImport()"><span class="ic">⇪</span>Загрузить точки на сегодня</div>':''}
     <div class="menu-item" onclick="phonesForm()"><span class="ic">📞</span>Заполнить телефоны</div>
     <div class="menu-item" onclick="autoCoords()"><span class="ic">📍</span>Найти координаты (${list.filter(s=>!s.lat).length})</div>
     <div class="menu-item" onclick="dupCheck()"><span class="ic">⧉</span>Поиск дублей по всем маршрутам</div>
@@ -1179,7 +1181,7 @@ async function restore(){
         if(!confirm('Заменить содержимое всех маршрутов?')) return;
         let n=0;
         for(const [rid,val] of Object.entries(d.all)){
-          await fetch('/api/route?m='+rid,{method:'POST',headers:{'content-type':'application/json','x-pass':pass},
+          await fetch('/api/route?m='+rid,{method:'POST',headers:{'content-type':'application/json',...hdr()},
             body:JSON.stringify({stops:val.stops||[],day:val.day||null,tpl:val.tpl||null})});
           n+=(val.stops||[]).length;
         }
@@ -1192,7 +1194,7 @@ async function restore(){
           throw new Error('В копии есть дубли или записи без идентификатора/названия');
         const m=route;
         const r=await fetch('/api/route?m='+encodeURIComponent(m),{method:'POST',
-          headers:{'content-type':'application/json','x-pass':pass},body:JSON.stringify({stops:d.stops,day:d.day||null,tpl:d.tpl||null})});
+          headers:{'content-type':'application/json',...hdr()},body:JSON.stringify({stops:d.stops,day:d.day||null,tpl:d.tpl||null})});
         if(!r.ok) throw new Error('Сервер не сохранил маршрут');
         await loadRoute();closeSheet();toast('Восстановлено: '+d.stops.length);
       }
@@ -1209,11 +1211,11 @@ async function autoCoords(){
     const s=todo[i]; let got=null;
     for(const u of [s.url,s.url2]){
       if(got||!u) continue;
-      try{const r=await fetch('/api/resolve?url='+encodeURIComponent(u),{headers:{'x-pass':pass}});
+      try{const r=await fetch('/api/resolve?url='+encodeURIComponent(u),{headers:hdr()});
         if(r.ok){const d=await r.json();got=[d.lat,d.lon,d.kind==='center'?'geo':'link']}}catch(e){}
     }
     if(!got&&s.addr){
-      try{const r=await fetch('/api/geocode?q='+encodeURIComponent(s.addr+', Краснодарский край'),{headers:{'x-pass':pass}});
+      try{const r=await fetch('/api/geocode?q='+encodeURIComponent(s.addr+', Краснодарский край'),{headers:hdr()});
         if(r.ok){const d=await r.json();got=[d.lat,d.lon,'geo']}}catch(e){}
       await new Promise(r=>setTimeout(r,1100));
     }
@@ -1405,7 +1407,7 @@ document.getElementById('shareBtn').onclick=async()=>{
   document.getElementById('card').innerHTML=`<h2>Ссылки</h2><div class="steps">Загружаю ключи…</div>`;
   document.getElementById('sheet').classList.add('open');
   let keys=null;
-  try{keys=(await fetch('/api/keys',{headers:{'x-pass':pass}}).then(r=>r.json())).keys}catch(e){}
+  try{keys=(await fetch('/api/keys',{headers:hdr()}).then(r=>r.json())).keys}catch(e){}
   const body=keys?`
     <div class="steps">Каждому водителю — своя ссылка. Чужие маршруты по ней не откроются.</div>
     ${ROUTES.map(r=>`<div class="phrow"><span>${r.name}</span>
@@ -1426,7 +1428,7 @@ function copyLink(u){
 async function newKeys(){
   if(!confirm('Создать новые ключи? Старые ссылки перестанут работать.')) return;
   try{
-    const d=await fetch('/api/keys',{method:'POST',headers:{'x-pass':pass}}).then(r=>r.json());
+    const d=await fetch('/api/keys',{method:'POST',headers:hdr()}).then(r=>r.json());
     if(d.keys){closeSheet();toast('Ключи созданы — раздайте новые ссылки');document.getElementById('shareBtn').click()}
   }catch(e){toast('Не получилось')}
 }
