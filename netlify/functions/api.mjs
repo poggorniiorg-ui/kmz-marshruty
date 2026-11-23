@@ -22,7 +22,7 @@ const corsHeaders = (req) => {
   return {
     "access-control-allow-origin": o,
     "access-control-allow-methods": "GET,POST,DELETE,OPTIONS",
-    "access-control-allow-headers": "content-type,x-pass",
+    "access-control-allow-headers": "content-type,x-pass,x-pass-encoded",
     "access-control-max-age": "86400",
     "vary": "origin"
   };
@@ -44,7 +44,12 @@ const handle = async (req) => {
   const routes = getStore("kmz-routes");
   const keysStore = getStore("kmz-keys");
   const photos = getStore("kmz-photos");
-  const authed = () => isAdmin(req.headers.get("x-pass"));
+  const authed = () => {
+    const encoded = req.headers.get("x-pass-encoded");
+    if (encoded === null) return isAdmin(req.headers.get("x-pass"));
+    try { return isAdmin(decodeURIComponent(encoded)); }
+    catch { return false; }
+  };
   const getKeys = async () => await keysStore.get("keys", { type: "json" }) || null;
   const allowed = async (m) => {
     if (authed()) return true;

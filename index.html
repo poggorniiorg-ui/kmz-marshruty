@@ -326,7 +326,7 @@ let akey=Q.get('k')||(function(){try{return localStorage.getItem('kmz_k')||''}ca
 if(Q.get('k')){try{localStorage.setItem('kmz_k',Q.get('k'))}catch(e){}}
 let myRoutes=null;
 const kq=(sep)=>akey?sep+'k='+encodeURIComponent(akey):'';
-const hdr=()=>pass?{'x-pass':pass}:{};
+const hdr=()=>pass?{'x-pass-encoded':encodeURIComponent(pass)}:{};
 let list=[], plan=null, tpl=null, st={}, visits=null;
 let admin=false, query='', offline=false, tab='day', dirty=false;
 let sel=new Set(), allRoutes=null, lastDel=null, loading=true;
