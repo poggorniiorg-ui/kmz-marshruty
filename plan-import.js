@@ -34,7 +34,7 @@
     const ta=make(c,'textarea','');ta.id=l.htmlFor;ta.rows=8;
     const fl=make(c,'label','Или выберите файл .txt (UTF‑8)');fl.htmlFor='plan-import-file';
     const file=make(c,'input','');file.id=fl.htmlFor;file.type='file';file.accept='.txt,text/plain';
-    const message=make(c,'p','Предпросмотр ничего не меняет. Порядок строк сохраняется.');message.setAttribute('role','status');
+    const message=make(c,'p','Предпросмотр ничего не меняет. Порядок строк сохраняется. Справочник не изменится.');message.setAttribute('role','status');
     const controls=make(c,'div','');controls.className='row';
     const result=make(c,'div','');
     let preview=null;
@@ -46,7 +46,7 @@
       try{
         await push();tab='day';render();
         c.replaceChildren();make(c,'h2','План на сегодня сохранён');make(c,'p','Точек: '+ids.length+' · порядок из списка сохранён.');
-        action(c,'Рейс водителю',()=>openDispatch());action(c,'Закрыть',closeSheet);
+        action(c,'Проверить рейс',()=>openDispatch({todayOnly:true}));action(c,'Закрыть',closeSheet);
       }catch(e){
         plan=oldPlan;tab=oldTab;dirty=false;render();
         message.textContent='Не сохранилось: '+e.message;

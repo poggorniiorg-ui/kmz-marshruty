@@ -59,7 +59,7 @@ const handle = async (req) => {
     return !!k && (k === keys.all || k === keys["r" + m]);
   };
   try {
-    if (["dispatch","dispatch-photo","dispatch-status"].includes(path))
+    if (["dispatch","dispatch-photo","dispatch-status","dispatch-check"].includes(path))
       return await handleDispatch({req,url,path,authed,routes,json});
     if (path === "auth" && req.method === "POST") {
       if (!PASS()) return json({ error: "Администратор должен настроить ADMIN_PASS в Netlify" }, 503);
