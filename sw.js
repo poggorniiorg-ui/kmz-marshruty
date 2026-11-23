@@ -1,9 +1,9 @@
 /* Кэш приложения. ВАЖНО: фото лежат в отдельном хранилище,
    которое НЕ чистится при обновлении версии — иначе после каждой
    заливки телефон качал бы все фото заново. */
-const V   = 'kmz-app-v18';
+const V   = 'kmz-app-v21';
 const PIC = 'kmz-photos';          // версию не менять никогда
-const SHELL = ['./','./index.html','./import.html','./manifest.json','./icon.svg'];
+const SHELL = ['./','./index.html','./import.html','./manifest.json','./icon.svg','./dispatch-admin.js','./driver.html','./driver.js'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -49,6 +49,7 @@ self.addEventListener('fetch', e => {
   }
 
   if (u.pathname.indexOf('/api/') === 0) return;
+  if (/\/driver(?:\.html|\.js)$/.test(u.pathname)) return;
 
   e.respondWith(
     withTimeout(e.request, 4000)

@@ -90,7 +90,7 @@ main{padding:8px 16px}
 .selbar button{background:var(--surface2);border-radius:11px;padding:11px 13px;font-size:14.5px}
 .selbar button.warn{color:var(--warn)}
 
-.sheet{position:fixed;inset:0;z-index:40;background:rgba(6,9,12,.5);display:none;align-items:flex-end;backdrop-filter:blur(2px)}
+.sheet{position:fixed;inset:0;z-index:50;background:rgba(6,9,12,.5);display:none;align-items:flex-end;backdrop-filter:blur(2px)}
 .sheet.open{display:flex}
 .card{position:relative;background:var(--sheet);width:100%;max-height:92vh;overflow-y:auto;border-radius:24px 24px 0 0;padding:22px 18px calc(env(safe-area-inset-bottom) + 18px);animation:up .22s cubic-bezier(.2,.8,.3,1)}
 @keyframes up{from{transform:translateY(26px)}to{transform:translateY(0)}}
@@ -126,6 +126,7 @@ main{padding:8px 16px}
 .phrow{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
 .phrow span{flex:1;min-width:0;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .phrow input{width:150px;background:var(--surface2);border:none;border-radius:10px;padding:10px}
+.phrow label{flex:1;min-width:0;display:flex;align-items:flex-start;gap:8px}.phrow input[type=checkbox]{width:20px;height:20px;flex:none;margin:2px 0 0;padding:0;accent-color:var(--accent)}
 #map{width:100%;height:70vh;border-radius:16px;overflow:hidden;background:var(--surface2)}
 .leaflet-container{background:var(--surface2)!important;font:inherit}
 .pin{background:var(--accent);color:#12191F;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-size:12px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.3)}
@@ -214,6 +215,29 @@ body{letter-spacing:-.005em}
 .meta+.bar,.bar{color:var(--head)}
 .bar.admin{color:var(--accent)}.bar.offline{color:var(--warn)}
 @media(min-width:1000px){header,.progress,.meta,.bar,main{max-width:880px;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}.bar{max-width:848px}.dock{left:300px;padding-left:max(16px,calc((100vw - 300px - 880px)/2 + 16px));padding-right:max(16px,calc((100vw - 300px - 880px)/2 + 16px))}}
+/* Dialogs sit above the permanent desktop sidebar and stay inside the visible viewport. */
+.sheet{z-index:80;justify-content:center;overscroll-behavior:contain}
+.sheet .card{animation:none;max-width:760px;max-height:calc(100dvh - 12px);overscroll-behavior:contain;scroll-padding:18px;overflow-wrap:anywhere}
+body:has(.sheet.open){overflow:hidden}
+.sheet .card:has(.login-form){max-width:440px}
+.login-form{display:grid;gap:15px}
+.login-form p{margin:0;line-height:1.5;font-size:15px}
+.login-form .field{margin:0}
+.login-form .field label{color:var(--text);font-size:15px;text-transform:none;letter-spacing:normal}
+.password-row{display:flex;align-items:stretch;gap:7px;min-width:0}
+.password-row input{min-width:0;flex:1;font-size:16px}
+.password-row button{flex:none;min-height:46px;border:1px solid var(--line);border-radius:10px;padding:0 11px;background:var(--surface2)}
+.login-form .btn{min-height:46px}
+.login-error{color:var(--warn);font-size:14px}
+.login-error:empty{display:none}
+.login-form button:focus-visible,.login-form input:focus-visible,.login-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(min-width:700px){.sheet.open{align-items:center;padding:24px}.sheet .card{max-height:calc(100dvh - 48px);border-radius:22px;padding:25px 26px;box-shadow:0 20px 80px rgba(0,0,0,.28)}}
+@media(max-width:699px){.sheet .card:has(.login-form){max-width:none}.sheet .card{padding-left:16px;padding-right:16px}.sheet .card h2{font-size:22px}}
+.dispatch-tools{position:sticky;top:0;z-index:2;background:var(--sheet);padding:10px 0 8px;border-bottom:1px solid var(--line)}
+.dispatch-tools input{width:100%;min-width:0;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.dispatch-tools .row{flex-wrap:wrap}
+.dispatch-tools .row .mini{margin-top:0}
+.dispatch-tools .row .mini:last-child:enabled{background:var(--solid);color:var(--onsolid)}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap">
 </head>
@@ -282,6 +306,7 @@ body{letter-spacing:-.005em}
 <div class="sheet" id="sheet"><div class="card" id="card"></div></div>
 <div class="toast" id="toast"></div>
 
+<script src="dispatch-admin.js"></script>
 <script>
 window.onerror=function(m,src,l){
   var el=document.getElementById('list');
@@ -344,9 +369,10 @@ async function loadStatic(m){
   return await r.json();
 }
 
+const cacheKey=m=>'kmz_cache_v2_'+m+'_'+(pass?'admin':(akey||'public'));
 function showCached(){
   try{
-    const c=JSON.parse(LS.get('cache_'+route)||'null');
+    const c=JSON.parse(LS.get(cacheKey(route))||'null');
     if(c&&c.stops&&c.stops.length){
       list=c.stops; plan=c.day||null; tpl=c.tpl||null;
       if(!planIds()) tab='all';
@@ -358,6 +384,7 @@ function showCached(){
 async function loadRoute(){
   loading=true;
   const hadCache=showCached();
+  const requested=route;
   try{
     const ctl=new AbortController(); const tmo=setTimeout(()=>ctl.abort(),9000);
     const [r,s2]=await Promise.all([
@@ -365,12 +392,15 @@ async function loadRoute(){
       fetch('/api/status?m='+route+'&d='+today()+kq('&'),{cache:'no-store',headers:hdr()}).then(x=>x.json()).catch(()=>({st:{}}))
     ]);
     clearTimeout(tmo);
-    if(r.error){if(!hadCache) noAccess(r.error); else{offline=true;render()} return}
+    if(requested!==route) return;
+    if(r.error){LS.set(cacheKey(requested),null);offline=false;noAccess(r.error);return}
     list=r.stops||[]; plan=r.day||null; tpl=r.tpl||null; st=s2.st||{}; offline=false; visits=null;
-    LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
+    LS.set(cacheKey(route),JSON.stringify({stops:list,day:plan,tpl}));
   }catch(e){
-    // сервера нет — пробуем файлы репозитория
+    if(requested!==route) return;
+    // Do not use public data as fallback on the protected Netlify origin.
     try{
+      if(!location.hostname.endsWith('.github.io')) throw new Error('unavailable');
       const d=await loadStatic(route);
       if(d&&d.stops){
         staticMode=true; offline=false;
@@ -378,13 +408,13 @@ async function loadRoute(){
         st=readLocalStatus();
         if(!planIds()) tab='all';
         loading=false;
-        LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
+        LS.set(cacheKey(route),JSON.stringify({stops:list,day:plan,tpl}));
         render(); return;
       }
     }catch(_){}
     offline=true;
     if(!hadCache){
-      try{const c=JSON.parse(LS.get('cache_'+route)||'{}');list=c.stops||[];plan=c.day||null;tpl=c.tpl||null}catch(_){list=[];plan=null}
+      try{const c=JSON.parse(LS.get(cacheKey(route))||'{}');list=c.stops||[];plan=c.day||null;tpl=c.tpl||null}catch(_){list=[];plan=null}
     }
     loading=false;
     if(!list.length){
@@ -404,7 +434,7 @@ async function push(){
     body:JSON.stringify({stops:list,day:plan,tpl})});
   if(!r.ok){const e=await r.json().catch(()=>({}));dirty=true;render();throw new Error(e.error||'Не сохранилось')}
   dirty=false; allRoutes=null;
-  LS.set('cache_'+route,JSON.stringify({stops:list,day:plan,tpl}));
+  LS.set(cacheKey(route),JSON.stringify({stops:list,day:plan,tpl}));
 }
 function readLocalStatus(){
   try{return JSON.parse(LS.get('st_'+route+'_'+today())||'{}')}catch(e){return {}}
@@ -419,9 +449,10 @@ async function setStatus(id,done,reason,clear){
   saveLocalStatus();
   if(staticMode) return;
   try{
-    await fetch('/api/status?m='+route+'&d='+today()+kq('&'),{method:'POST',
-      headers:{'content-type':'application/json'},
+    const res=await fetch('/api/status?m='+route+'&d='+today()+kq('&'),{method:'POST',
+      headers:{...hdr(),'content-type':'application/json'},
       body:JSON.stringify({id,done,reason,clear})});
+    if(!res.ok) throw new Error('status not saved');
   }catch(e){toast('Отметка не ушла — нет связи')}
 }
 async function loadAll(){
@@ -467,6 +498,7 @@ async function initRoutes(){
       const c=new AbortController(); const t=setTimeout(()=>c.abort(),6000);
       const d=await fetch('/api/access'+kq('?'),{cache:'no-store',headers:hdr(),signal:c.signal}).then(x=>x.json());
       clearTimeout(t);
+      if(pass && d.admin===true){admin=true;render();}
       if(Array.isArray(d.routes)&&d.routes.length&&d.routes.length<ROUTES.length) myRoutes=d.routes.slice().sort();
     }catch(e){}
   }
@@ -942,6 +974,7 @@ document.getElementById('menuBtn').onclick=()=>{
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
   <h2>Управление</h2>
   <div style="margin-top:16px">
+    ${['2','3'].includes(route)?'<div class="menu-item" onclick="openDispatch()"><span class="ic">↗</span>Рейс водителю · выбрать точки и получить ссылку</div><div class="menu-item" onclick="openRouteImport()"><span class="ic">⇪</span>Загрузить сверенный список 2/3</div>':''}
     <div class="menu-item" onclick="planForm()"><span class="ic">📅</span>План на день и шаблоны${ids?' · '+ids.length:''}</div>
     <div class="menu-item" onclick="phonesForm()"><span class="ic">📞</span>Заполнить телефоны</div>
     <div class="menu-item" onclick="autoCoords()"><span class="ic">📍</span>Найти координаты (${list.filter(s=>!s.lat).length})</div>
@@ -966,7 +999,7 @@ function planForm(){
     <button class="btn flat" onclick="planClear()">Снять план</button></div>
   <div class="field" style="margin-top:22px"><label>Список клиентов на сегодня</label>
     <textarea id="planlist" style="min-height:150px" placeholder="Курпитко Атарбекова&#10;Молов Минская&#10;Титаренко"></textarea>
-    <div class="hint">Вставьте фамилии из таблицы, по одной в строке. Отмечу их в плане и выстрою порядок объезда от ближней к дальней.</div>
+    <div class="hint">Вставьте фамилии из таблицы, по одной в строке. Порядок объезда сохранится как в списке.</div>
     <div class="row"><button class="btn accent" onclick="planFromList()">Составить маршрут на день</button></div></div>
   <div class="field" style="margin-top:22px"><label>Сохранить нынешний план как шаблон</label>
     <select id="f_tpl">${days.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
@@ -974,7 +1007,7 @@ function planForm(){
       <button class="btn flat" onclick="tplApply()">Применить</button></div>
     <div class="hint">${tpl?('Готовые шаблоны: '+Object.keys(tpl).join(', ')):'Шаблонов пока нет.'}</div></div>`;
 }
-async function planAll(){plan={date:today(),ids:ordered().map(s=>s.id)};tab='day';render();closeSheet();
+async function planAll(){plan={date:today(),ids:list.map(s=>s.id)};tab='day';render();closeSheet();
   try{await push();toast('Отмечены все точки')}catch(e){toast(e.message)}}
 async function planClear(){plan=null;tab='all';render();closeSheet();
   try{await push();toast('План снят')}catch(e){toast(e.message)}}
@@ -1022,14 +1055,12 @@ async function planFromList(){
     else miss.push(r);
   });
   if(!found.length&&!amb.length){toast('Ни одна строка не совпала');return}
-  const withC=found.filter(s=>s.lat), without=found.filter(s=>!s.lat);
-  const order=withC.length>1?optimize(withC,null):withC;
-  plan={date:today(),ids:order.concat(without).map(s=>s.id)};
+  plan={date:today(),ids:found.map(s=>s.id)};
   tab='day'; render();
   try{await push()}catch(e){toast(e.message)}
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
     <h2>План на сегодня</h2>
-    <div class="steps">В маршруте: <b>${found.length}</b> точек${withC.length>1?` · порядок выстроен, ${Math.round(totalKm(order))} км`:''}${without.length?`<br>Без координат, ушли в конец: ${without.length}`:''}${miss.length?`<br><br><span style="color:var(--warn)">Не нашлись:</span><br>${miss.map(esc).join('<br>')}`:''}
+    <div class="steps">В маршруте: <b>${found.length}</b> точек · порядок исходного списка сохранён${miss.length?`<br><br><span style="color:var(--warn)">Не нашлись:</span><br>${miss.map(esc).join('<br>')}`:''}
     ${amb.length?`<br><br><span style="color:var(--warn)">Совпало несколько — уточните адрес:</span><br>${amb.map(a=>esc(a.q)+' → '+a.list.map(esc).join(' / ')).join('<br>')}`:''}</div>
     <div class="hint">Неоднозначные не добавлены — отметьте их галочкой вручную. Порядок правится ручкой ⠿ на вкладке «Сегодня».</div>`;
 }
@@ -1134,16 +1165,16 @@ function restoreForm(){
   <h2>Восстановить</h2>
   <div class="field" style="margin-top:16px"><label>Файл копии</label>
     <input type="file" id="f_restore" accept=".json,application/json">
+    <details><summary>Или вставьте JSON из копии</summary><textarea id="f_restore_text" aria-label="JSON из копии" rows="4" spellcheck="false"></textarea></details>
     <div class="hint">Подходит и копия одного маршрута, и копия всех сразу. Текущее содержимое заменится.</div></div>
   <div class="row"><button class="btn accent" onclick="restore()">Загрузить</button></div>`;
 }
-function restore(){
+async function restore(){
   const f=document.getElementById('f_restore').files[0];
-  if(!f){toast('Выберите файл');return}
-  const fr=new FileReader();
-  fr.onload=async()=>{
-    try{
-      const d=JSON.parse(fr.result);
+  const pasted=document.getElementById('f_restore_text').value.trim();
+  if(!f&&!pasted){toast('Выберите файл или вставьте JSON');return}
+  try{
+      const d=JSON.parse(f?await f.text():pasted);
       if(d.all){
         if(!confirm('Заменить содержимое всех маршрутов?')) return;
         let n=0;
@@ -1156,12 +1187,16 @@ function restore(){
       }else{
         if(!Array.isArray(d.stops)) throw new Error('Это не копия маршрута');
         if(!confirm('Заменить '+list.length+' точек на '+d.stops.length+'?')) return;
-        list=d.stops; plan=d.day||null; tpl=d.tpl||null;
-        render(); closeSheet(); await push(); toast('Восстановлено: '+list.length);
+        const known=new Set();
+        if(d.stops.length>300 || d.stops.some(s=>!s || !/^[a-zA-Z0-9_-]{1,100}$/.test(s.id||'') || typeof s.name!=='string' || !s.name.trim() || known.has(s.id) || !known.add(s.id)))
+          throw new Error('В копии есть дубли или записи без идентификатора/названия');
+        const m=route;
+        const r=await fetch('/api/route?m='+encodeURIComponent(m),{method:'POST',
+          headers:{'content-type':'application/json','x-pass':pass},body:JSON.stringify({stops:d.stops,day:d.day||null,tpl:d.tpl||null})});
+        if(!r.ok) throw new Error('Сервер не сохранил маршрут');
+        await loadRoute();closeSheet();toast('Восстановлено: '+d.stops.length);
       }
     }catch(e){toast(e.message)}
-  };
-  fr.readAsText(f);
 }
 async function autoCoords(){
   const todo=list.filter(s=>!s.lat);
@@ -1197,15 +1232,44 @@ document.getElementById('adminBtn').onclick=async()=>{
   if(staticMode){toast('Этот адрес только для просмотра. Правки — в основном приложении');return}
   if(admin){exitAdmin();return}
   if(pass&&await tryPass(pass)) return;
-  document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Редактирование</h2>
-    <div class="field" style="margin-top:18px"><label>Пароль</label>
-      <input id="f_pass" type="password" inputmode="numeric"></div>
-    <div class="row"><button class="btn accent" onclick="tryPass(document.getElementById('f_pass').value)">Войти</button></div>`;
+  const card=document.getElementById('card');
+  card.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="login-title" aria-describedby="login-info">
+    <button type="button" class="close login-close" aria-label="Закрыть окно входа">✕</button>
+    <form id="login-form" class="login-form">
+      <h2 id="login-title">Вход в управление</h2>
+      <p id="login-info">Введите пароль, который вы задали для сайта маршрутов в настройках Netlify (ADMIN_PASS). Это не пароль аккаунта Netlify.</p>
+      <div class="field"><label for="f_pass">Пароль управления маршрутами</label>
+        <div class="password-row"><input id="f_pass" name="password" type="password" autocomplete="current-password" required>
+          <button id="pass-toggle" type="button" aria-controls="f_pass">Показать</button></div></div>
+      <p class="login-error" id="login-error" role="alert"></p>
+      <button id="login-submit" class="btn accent" type="submit">Войти</button>
+    </form></section>`;
+  const form=card.querySelector('form'), input=form.elements.password, toggle=form.querySelector('#pass-toggle');
+  const message=form.querySelector('#login-error'), submit=form.querySelector('#login-submit');
+  const controls=[card.querySelector('.login-close'),input,toggle,submit];
+  const close=()=>{input.value='';closeSheet();document.getElementById('adminBtn').focus({preventScroll:true})};
+  controls[0].onclick=close;
+  form.closest('section').addEventListener('keydown',e=>{
+    if(e.key==='Escape'){e.preventDefault();close()}
+    if(e.key==='Tab' && e.shiftKey && document.activeElement===controls[0]){e.preventDefault();submit.focus()}
+    if(e.key==='Tab' && !e.shiftKey && document.activeElement===submit){e.preventDefault();controls[0].focus()}
+  });
+  toggle.onclick=()=>{
+    const reveal=input.type==='password';
+    input.type=reveal?'text':'password';toggle.textContent=reveal?'Скрыть':'Показать';
+  };
+  form.onsubmit=async e=>{
+    e.preventDefault();if(submit.disabled)return;
+    submit.disabled=true;message.textContent='';
+    try{const ok=await tryPass(input.value,msg=>{message.textContent=msg});if(ok)input.value=''}
+    finally{submit.disabled=false}
+  };
   document.getElementById('sheet').classList.add('open');
-  setTimeout(()=>{const el=document.getElementById('f_pass');el&&el.focus()},150);
+  card.scrollTop=0;
+  if(matchMedia('(pointer:fine)').matches) input.focus({preventScroll:true});
+  else controls[0].focus({preventScroll:true});
 };
-async function tryPass(p){
+async function tryPass(p,report=toast){
   if(!p) return false;
   try{
     const r=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pass:p})});
@@ -1214,8 +1278,10 @@ async function tryPass(p){
       myRoutes=null;akey='';try{localStorage.removeItem('kmz_k')}catch(e){}
       fillPicker();document.getElementById('dock').style.display='flex';
       await loadRoute();try{initRoutes()}catch(e){}return true}
-    toast('Пароль не подошёл');
-  }catch(e){toast('Нет связи с сервером')}
+    if(r.status===503)report('Пароль управления ещё не задан в Netlify.');
+    else if(!r.ok)report('Не удалось войти. Попробуйте ещё раз.');
+    else report('Пароль не подошёл. Проверьте пароль управления маршрутами.');
+  }catch(e){report('Нет связи с сервером. Попробуйте ещё раз.')}
   return false;
 }
 function exitAdmin(){admin=false;setPass('');selClear();render()}
@@ -1328,6 +1394,7 @@ function ensureLeaflet(){
 }
 
 document.getElementById('shareBtn').onclick=async()=>{
+  if(admin&&['2','3'].includes(route)){openDispatch();return;}
   const base=location.origin+location.pathname.replace(/[^/]*$/,'');
   if(!admin){
     const url=base+'r'+route+'.html'+kq('?');
