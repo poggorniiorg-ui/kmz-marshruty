@@ -20,6 +20,7 @@ const safeYandexMap = x => {
   const host=hostname.toLowerCase().replace(/^www\./,'');
   return host==='ya.ru' || (/^yandex\.(?:ru|com|com\.tr|kz|by)$/.test(host) && /^\/maps(?:\/|$)/.test(pathname));
 };
+const runCode = id => id.slice(0,10).toUpperCase();
 const runHash = /^[a-f0-9]{64}$/;
 const RECENT_LIMIT = 12;
 const LEGACY_SCAN_LIMIT = 160;
@@ -83,6 +84,21 @@ export function makeRunHandler(getStore, { now = Date.now, nonce = () => randomB
     };
     const getStatus = (id, stop) => store.get(statusKey(id,stop),{type:'json'});
     const id = url.searchParams.get('id') || '';
+    const adminDetails=async (runId,run)=>{
+      const rows=await batches(run.stops,12,async s=>({id:s.id,name:s.name,addr:s.addr||'',status:await getStatus(runId,s.id)||null}));
+      return {id:runId,code:runCode(runId),label:text(run.label,80),created:run.created||null,
+        date:run.date,route:run.route,expires:run.expires,revoked:Boolean(run.revoked),count:rows.length,rows};
+    };
+    if (path === 'dispatch-lookup' && req.method === 'POST') {
+      if (!authed()) return json({error:'Войдите в управление'},401);
+      const body=await readBody(req,1024);
+      if (typeof body?.token!=='string'||!/^[a-zA-Z0-9_-]{32}$/.test(body.token))
+        return json({error:'Некорректная ссылка водителя'},400);
+      const runId=tokenHash(body.token);
+      const {run}=await get(runId);
+      if (!run) return json({error:'Рейс по этой ссылке не найден'},404);
+      return json(await adminDetails(runId,run));
+    }
     if (path === 'dispatch-check' && req.method === 'POST') {
       if (!authed()) return json({error:'Войдите в управление'},401);
       const body=await readBody(req,12000);
@@ -137,7 +153,7 @@ export function makeRunHandler(getStore, { now = Date.now, nonce = () => randomB
         const statuses=await batches(marked.keys,12,key=>readRun(key));
         const done=statuses.filter(s=>s?.state==='done').length;
         const failed=statuses.filter(s=>s?.state==='failed').length;
-        return {id,route:m,date:run.date,expires:run.expires,revoked:Boolean(run.revoked),
+        return {id,code:runCode(id),label:text(run.label,80),created:run.created||null,route:m,date:run.date,expires:run.expires,revoked:Boolean(run.revoked),
           count:run.stops.length,done,failed,pending:run.stops.length-done-failed};
       });
       return json({runs,truncated:indexed.truncated||legacy.truncated||hits.length>RECENT_LIMIT});
@@ -147,6 +163,7 @@ export function makeRunHandler(getStore, { now = Date.now, nonce = () => randomB
       const body = await readBody(req,12000);
       const m = body?.route;
       const date = body?.date;
+      const label = text(body?.label,80);
       const ids = body?.ids;
       if (!['2','3'].includes(m) || !dayOK(date) || !validIds(ids))
         return json({error:'Проверьте маршрут, дату и список точек'},400);
@@ -170,8 +187,8 @@ export function makeRunHandler(getStore, { now = Date.now, nonce = () => randomB
       // The one-record index avoids lost updates between concurrent launches.
       // Publish it before the run; orphaned pointers are ignored by listing.
       await store.setJSON(indexKey(m,date,created,runId), {});
-      await store.setJSON(issuedKey(runId), {route:m,date,created,expires,stops});
-      return json({token,id:runId,count:stops.length,expires},201);
+      await store.setJSON(issuedKey(runId), {route:m,date,created,expires,stops,...(label?{label}:{})});
+      return json({token,id:runId,code:runCode(runId),count:stops.length,expires},201);
     }
     if (path === 'dispatch' && ['DELETE','GET'].includes(req.method) && id) {
       if (!authed()) return json({error:'Войдите в управление'},401);
@@ -182,8 +199,7 @@ export function makeRunHandler(getStore, { now = Date.now, nonce = () => randomB
         await store.setJSON(key,{...run,revoked:true});
         return json({ok:true});
       }
-      const rows=await batches(run.stops,12,async s=>({id:s.id,name:s.name,addr:s.addr||'',status:await getStatus(id,s.id)||null}));
-      return json({date:run.date,route:run.route,expires:run.expires,revoked:Boolean(run.revoked),count:run.stops.length,rows});
+      return json(await adminDetails(id,run));
     }
     const token = req.headers.get('x-run-token') || '';
     if (!/^[a-zA-Z0-9_-]{32}$/.test(token)) return json({error:'Некорректная ссылка на рейс'},404);
@@ -194,7 +210,7 @@ export function makeRunHandler(getStore, { now = Date.now, nonce = () => randomB
       const status = Object.fromEntries(await Promise.all(run.stops.map(async s => [
         s.id,await getStatus(runId,s.id)
       ])));
-      return json({route:run.route,date:run.date,expires:run.expires,
+      return json({route:run.route,date:run.date,expires:run.expires,code:runCode(runId),
         stops:run.stops.map(({photo,...s})=>({...s,hasPhoto:Boolean(photo)})),status});
     }
     if (path === 'dispatch-status' && req.method === 'POST') {

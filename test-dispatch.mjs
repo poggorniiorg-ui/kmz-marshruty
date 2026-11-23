@@ -143,3 +143,32 @@ test('история ограничена свежими записями и н�
   assert.deepEqual(result.runs.map(r=>r.id),created.slice(-12).reverse());
   assert.ok(result.runs.every(r=>r.pending===1&&r.done===0&&r.failed===0));
 });
+
+test('точная ссылка находит свой рейс; ярлык закрыт от водителя, отметки независимы',async()=>{
+  now=Date.parse('2026-11-23T07:00:00Z');
+  await routes.setJSON('route-3',{stops:[{id:'common',name:'Одна точка'}]});
+  const post={admin:true,method:'POST'};
+  const d={route:'3',date:'2026-11-23',ids:['common']};
+  const a=await (await req('dispatch',{...post,body:{...d,label:' Утренний '}})).json();
+  const b=await (await req('dispatch',{...post,body:d})).json();
+  assert.notEqual(a.code,b.code);
+  assert.equal(a.code,a.id.slice(0,10).toUpperCase());
+  const lookup=(token,admin=true)=>req('dispatch-lookup',{method:'POST',admin,body:{token}});
+  assert.equal((await lookup(a.token,false)).status,401);
+  assert.equal((await lookup('invalid')).status,400);
+  assert.equal((await lookup('u'.repeat(32))).status,404);
+  const driver=await (await req('dispatch',{token:a.token})).json();
+  assert.equal(driver.code,a.code);
+  assert.equal(driver.label,undefined);
+  await req('dispatch-status',{token:a.token,method:'POST',body:{id:'common',state:'failed',reason:'закрыто'}});
+  const exact=await (await lookup(a.token)).json();
+  assert.equal(exact.id,a.id);
+  assert.equal(exact.label,'Утренний');
+  assert.equal(exact.token,undefined);
+  assert.deepEqual(exact.rows[0].status,{state:'failed',reason:'закрыто',at:new Date(now).toISOString()});
+  assert.equal((await (await lookup(b.token)).json()).rows[0].status,null);
+  await req('dispatch?id='+a.id,{admin:true,method:'DELETE'});
+  assert.equal((await req('dispatch',{token:a.token})).status,404);
+  assert.equal((await (await lookup(a.token)).json()).revoked,true);
+});
+

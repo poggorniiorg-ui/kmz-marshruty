@@ -266,6 +266,44 @@ body:has(.sheet.open){overflow:hidden}
 .dispatch-home :focus-visible,#card :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:430px){.dispatch-home .dispatch-actions{display:grid;grid-template-columns:1fr 1fr}.dispatch-home .dispatch-actions button:first-child{grid-column:1/-1}.dispatch-checkrow{grid-template-columns:1fr}.dispatch-arrows .mini{min-width:46px}}
 
+
+.dispatch-home{border-color:#647d9c4a;box-shadow:0 8px 24px #101f3510}
+.dispatch-home>div:first-child{background:#1b2739;color:#fff;padding:13px 15px;border-radius:11px}
+.dispatch-home [data-dispatch-count]{color:#dce8f8}
+.dispatch-actions button.dispatch-primary,.dispatch-home .dispatch-primary{background:#18477d;color:#fff}
+.dispatch-picker{display:grid;gap:16px;margin-block:14px}
+.dispatch-draft{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-width:0}
+.dispatch-draft h3{margin:0;font-size:1rem}
+.dispatch-draft ol{margin:8px 0 0;padding-inline-start:21px}
+.dispatch-draft li+li{margin-top:6px}
+.dispatch-draft small,.dispatch-runcard small,.dispatch-live-rows small{display:block;color:var(--ink2,var(--text))}
+.dispatch-picker-actions{background:var(--sheet);border-top:1px solid var(--line);margin:0;padding:10px 0 2px}
+.dispatch-frame{display:block;width:min(100%,390px);height:min(70dvh,700px);margin:12px auto;border:4px solid #1b2739;border-radius:19px}
+.dispatch-has-warning>.dispatch-checkrow{border-inline-start:3px solid #af7225;padding-inline-start:7px}
+.dispatch-name{display:grid;gap:5px;margin-top:9px}
+.dispatch-name input,.dispatch-lookup input{font:inherit;color:var(--text);background:var(--surface2);border:1px solid var(--line);padding:10px;min-width:0;border-radius:9px;width:100%}
+.dispatch-lookup{display:flex;align-items:end;gap:8px;margin-block:12px}
+.dispatch-lookup label{flex:1;min-width:0;display:grid;gap:5px}
+.dispatch-lookup .mini{min-height:44px;margin:0}
+.dispatch-runcard{display:block;width:100%;text-align:start;padding:11px 13px;margin:7px 0;border-radius:12px}
+.dispatch-runcard small{margin-top:4px;white-space:normal}
+.dispatch-live-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-block:12px}
+.dispatch-live-counts>div,.dispatch-badge{padding:7px;background:var(--surface2);border:1px solid var(--line);border-radius:9px}
+.dispatch-live-counts b,.dispatch-live-counts small{display:block}
+.dispatch-live-counts b{font-variant-numeric:tabular-nums;font-size:1.45em}
+.dispatch-live-counts .done,.dispatch-badge.done{background:#e5f4eb;color:#225639}
+.dispatch-live-counts .failed,.dispatch-badge.failed{background:#fff1e8;color:#7e3322}
+.dispatch-badge{font-size:.78em;font-weight:700;align-self:start}
+.dispatch-meter{width:100%;height:10px;accent-color:#306ba8}
+.dispatch-sync{font-size:.82rem}
+.dispatch-live-rows{padding-inline-start:22px;margin-block:12px}
+.dispatch-live-rows li{padding:9px 0;border-bottom:1px solid var(--line)}
+.dispatch-live-rows li>div{display:inline-block;width:calc(100% - 112px);vertical-align:top}
+.dispatch-live-rows small{margin-top:3px}
+.dispatch-live-rows .dispatch-badge{display:inline-block;max-width:105px;vertical-align:top}
+@media(min-width:700px){.dispatch-picker{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);align-items:start}.dispatch-draft{position:sticky;top:0}.dispatch-picker-actions{position:sticky;bottom:0;z-index:4}}
+@media(max-width:699px){.dispatch-picker>div:first-child{max-height:46dvh;overflow:auto;padding:3px}.dispatch-draft{max-height:32dvh;overflow:auto}.dispatch-picker-actions{position:sticky;bottom:0;z-index:4;padding-bottom:6px}.dispatch-picker-actions .dispatch-primary{flex:1;min-height:44px}}
+@media(max-width:420px){.dispatch-lookup{display:grid}.dispatch-lookup .mini{justify-self:start}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap">
 </head>
@@ -296,11 +334,11 @@ body:has(.sheet.open){overflow:hidden}
 
 
 <section class="dispatch-home" id="dispatchHome" hidden aria-label="Управление рейсом">
-  <div><strong>Рейс на сегодня</strong><small data-dispatch-count></small></div>
+  <div><strong>Рейс на сегодня · <span data-dispatch-route></span></strong><small data-dispatch-count></small></div>
   <div class="dispatch-actions">
     <button class="mini dispatch-primary" type="button" data-dispatch-import onclick="openPlanImport()">Загрузить список на сегодня</button>
     <button class="mini" type="button" data-dispatch-review onclick="openDispatch({todayOnly:true})">Проверить рейс</button>
-    <button class="mini" type="button" onclick="openDispatchHistory()">Рейсы и статусы</button>
+    <button class="mini" type="button" onclick="openDispatchHistory()">Ход рейса</button>
   </div>
   <small>Загрузка сюда меняет только план дня, не справочник точек.</small>
 </section>

@@ -119,7 +119,7 @@ function navigation(stop, section, {thumb = false} = {}) {
   const main = yandexMap(first) || yandexMap(second) || coordinatesMap(stop.lat, stop.lon);
   const alternative = [second, first].find(x => x && x !== main);
   const actions = el('div', '', section, 'actions');
-  if (main) mapLink(main, 'Поехать', actions, true);
+  if (main) mapLink(main, 'Яндекс Карты', actions, true);
   let photoButton;
   if (stop.hasPhoto) {
     photoButton = button('', actions, async b => {
@@ -152,7 +152,7 @@ function getMenu(parent, label) {
 }
 function details(stop, section, thumb = false) {
   el('p', addressOf(stop), section, 'address');
-  if (stop.hours) el('p', 'Приёмка: ' + stop.hours, section);
+  if (stop.hours) el('p', 'Приёмка: ' + stop.hours, section, 'hours');
   if (stop.note) el('p', stop.note, section, 'note');
   return navigation(stop, section, {thumb});
 }
@@ -223,7 +223,7 @@ function render() {
   const failed = stops.filter(s => stateOf(s) === 'failed').length;
   const date = model.date.split('-').reverse().join('.');
   $('title').textContent = 'Краснодар · маршрут ' + model.route;
-  $('summary').textContent = date + ' · сдано ' + done + ' из ' + total + (failed ? ' · не сдано ' + failed : '');
+  $('summary').textContent = date + ' · сдано ' + done + ' из ' + total + (failed ? ' · не сдано ' + failed : '') + (model.code ? ' · рейс '+model.code : '');
   const progress = $('progress');
   progress.hidden = !total;
   progress.max = total || 1; progress.value = done;

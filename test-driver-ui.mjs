@@ -78,7 +78,7 @@ test('next pending stop, exact Yandex navigation, lazy photo, original route ord
   assert.match(ids.next.textContent, /Адрес не указан/);
   assert.match(ids.next.textContent, /09:00–18:00/);
   assert.match(ids.next.textContent, /Въезд со двора/);
-  assert.match(choose(ids.next,'a','Поехать').href, /^https:\/\/yandex\.ru\/maps\/\?rtext=/);
+  assert.match(choose(ids.next,'a','Яндекс Карты').href, /^https:\/\/yandex\.ru\/maps\/\?rtext=/);
   assert.equal(choose(ids.next,'a','Ещё карта').href, 'https://2gis.ru/krasnodar/');
   assert.deepEqual(reads, ['./api/dispatch','./api/dispatch-photo?stop=2']);
   const photo = choose(ids.next,'button','Фото выгрузки');
@@ -92,7 +92,7 @@ test('next pending stop, exact Yandex navigation, lazy photo, original route ord
   assert.deepEqual(ids.stops.children.map(c => c.querySelector('h3')?.textContent || c.querySelector('summary').textContent.split(' · ')[0]), ['1. Одинаковое имя','2. Другая точка','3. Одинаковое имя']);
   assert.match(ids.stops.children[0].querySelector('summary').textContent, /Улица А, 2/);
   assert.match(ids.stops.children[2].textContent, /Улица Б, 15/);
-  assert.ok(!ids.stops.children[2].querySelectorAll('a').some(a => a.textContent === 'Поехать'));
+  assert.ok(!ids.stops.children[2].querySelectorAll('a').some(a => a.textContent === 'Яндекс Карты'));
 });
 test('status validation failure allows retry; unsuccessful stops surface reason; clear resumes same stop', async () => {
   const {ids,writes} = await start({statusFail:true});
