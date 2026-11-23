@@ -1,0 +1,22 @@
+name: Route checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  route-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test test-auth-transport.mjs test-plan-import.mjs test-dispatch.mjs test-driver-ui.mjs
+      - run: |
+          node --check dispatch-admin.js
+          node --check driver.js
+          node --check netlify/functions/api.mjs
+          node --check netlify/lib/runs.mjs
+          node -e 'const fs=require("fs"); for (const m of fs.readFileSync("index.html","utf8").matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) if (m[1].trim()) new Function(m[1]);'

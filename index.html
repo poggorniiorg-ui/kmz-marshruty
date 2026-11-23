@@ -238,6 +238,34 @@ body:has(.sheet.open){overflow:hidden}
 .dispatch-tools .row{flex-wrap:wrap}
 .dispatch-tools .row .mini{margin-top:0}
 .dispatch-tools .row .mini:last-child:enabled{background:var(--solid);color:var(--onsolid)}
+
+.dispatch-home[hidden]{display:none!important}
+.dispatch-home{display:grid;gap:9px;margin:8px auto 14px;width:calc(100% - 24px);max-width:900px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.dispatch-home strong{font-size:1.02rem}.dispatch-home small,.dispatch-checkrow small,.dispatch-select small,.dispatch-history small{display:block;color:var(--ink2,var(--text))}
+.dispatch-actions,.dispatch-arrows,.dispatch-flags{display:flex;flex-wrap:wrap;gap:6px}
+.dispatch-actions{margin:9px 0;align-items:center}
+.dispatch-actions .mini,.dispatch-arrows .mini,.dispatch-home .mini{margin:0;min-height:40px;line-height:1.2;padding:8px 11px}
+.dispatch-actions .dispatch-primary,.dispatch-home .dispatch-primary{color:var(--onsolid);background:var(--solid);border-color:transparent}
+.dispatch-home .mini:disabled,.dispatch-actions .mini:disabled,.dispatch-arrows .mini:disabled{opacity:.52;cursor:default}
+.dispatch-frame{width:100%;height:min(68dvh,670px);border:1px solid var(--line);border-radius:14px;background:#f5f6f8}
+.dispatch-report{background:var(--surface2);padding:9px 12px;border-radius:10px;margin:10px 0}
+.dispatch-rows{padding-inline-start:24px;margin:7px 0}
+.dispatch-checkrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;border-bottom:1px solid var(--line);padding:9px 0}
+.dispatch-arrows{align-content:start}
+.dispatch-flags span{font-size:.8rem;color:var(--warn);padding:2px 5px;border:1px solid var(--line);border-radius:5px}
+.dispatch-select{display:flex;align-items:center;gap:10px;min-height:45px;border-bottom:1px solid var(--line);padding:8px 0}
+.dispatch-select input{width:20px;height:20px;flex:none;margin:0}
+.dispatch-date{display:block;margin-top:10px}
+.dispatch-date input,.dispatch-url,#card input[type=search],.dispatch-actions select{font:inherit;color:var(--text);background:var(--surface2);border:1px solid var(--line);padding:9px;min-width:0;border-radius:9px}
+.dispatch-date input{margin-inline-start:8px}
+.dispatch-url,#card input[type=search]{width:100%}
+.dispatch-history{border:1px solid var(--line);border-radius:11px;margin:9px 0;padding:10px}
+.dispatch-history summary{cursor:pointer;min-height:35px}
+.dispatch-history ol{padding-inline-start:23px}
+.dispatch-history li{padding:5px 0}
+.dispatch-home :focus-visible,#card :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:430px){.dispatch-home .dispatch-actions{display:grid;grid-template-columns:1fr 1fr}.dispatch-home .dispatch-actions button:first-child{grid-column:1/-1}.dispatch-checkrow{grid-template-columns:1fr}.dispatch-arrows .mini{min-width:46px}}
+
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap">
 </head>
@@ -266,6 +294,16 @@ body:has(.sheet.open){overflow:hidden}
   <button style="color:var(--accent);font-weight:600" onclick="exitAdmin()">Выйти</button>
 </div>
 
+
+<section class="dispatch-home" id="dispatchHome" hidden aria-label="Управление рейсом">
+  <div><strong>Рейс на сегодня</strong><small data-dispatch-count></small></div>
+  <div class="dispatch-actions">
+    <button class="mini dispatch-primary" type="button" data-dispatch-import onclick="openPlanImport()">Загрузить список на сегодня</button>
+    <button class="mini" type="button" data-dispatch-review onclick="openDispatch({todayOnly:true})">Проверить рейс</button>
+    <button class="mini" type="button" onclick="openDispatchHistory()">Рейсы и статусы</button>
+  </div>
+  <small>Загрузка сюда меняет только план дня, не справочник точек.</small>
+</section>
 <main id="list"><div class="empty">Загружаю маршрут…</div></main>
 
 <div class="dock" id="dock">
@@ -535,6 +573,7 @@ const canDrag=()=>admin&&!query&&!sel.size;
 /* ---------- отрисовка ---------- */
 function render(){
   const ids=planIds(), vis=visible(), ord=ordered();
+  window.renderDispatchHome?.();
   document.getElementById('tabDay').classList.toggle('on',tab==='day');
   document.getElementById('tabAll').classList.toggle('on',tab==='all');
   document.getElementById('tabDay').innerHTML='Сегодня'+(ids?` <span>${ids.length}</span>`:'');
@@ -556,7 +595,7 @@ function render(){
   document.getElementById('adminHint').textContent=(tab==='day'&&ids)?'⠿ — порядок объезда на сегодня':'Тап — правка · ✓ — сегодня · ⋮ — действия';
 
   let html=vis.length?vis.map(s=>row(s,ord.indexOf(s)+1)).join(''):
-    `<div class="empty">${(loading&&!list.length)?'Загружаю маршрут…':(query?'В этом маршруте не найдено':(tab==='day'?(ids?'На сегодня точек не отмечено':('План на сегодня не задан.<br>Все точки — на соседней вкладке.'+(admin&&['2','3'].includes(route)?'<br><br><button class="mini" onclick="openPlanImport()">Загрузить точки на сегодня</button>':''))):'В маршруте пока нет точек'))}</div>`;
+    `<div class="empty">${(loading&&!list.length)?'Загружаю маршрут…':(query?'В этом маршруте не найдено':(tab==='day'?(ids?'На сегодня точек не отмечено':('План на сегодня не задан.<br>Все точки — на соседней вкладке.')):'В маршруте пока нет точек'))}</div>`;
 
   if(query&&query.length>1&&allRoutes&&!myRoutes){
     const other=[];
@@ -736,7 +775,7 @@ function openCard(id){
     ${s.note?`<div class="note-box">${esc(s.note)}</div>`:''}
     ${s.photo?`<img class="photo" src="${photoUrl(s.photo)}" alt="">`:''}
     <div class="row">
-      ${(s.url||s.lat)?`<a class="btn" target="_blank" rel="noopener" href="${s.url?esc(s.url):`https://yandex.ru/maps/?rtext=~${s.lat},${s.lon}&rtt=auto`}">Поехали</a>`:''}
+      ${yandexPoint(s)?`<a class="btn" target="_blank" rel="noopener noreferrer" href="${esc(yandexPoint(s))}">Поехали · Яндекс</a>`:''}
       ${s.phone?`<a class="btn flat" href="tel:${esc(s.phone).replace(/[^\d+]/g,'')}">Позвонить 📞</a>`:(s.url2?`<a class="btn flat" target="_blank" rel="noopener" href="${esc(s.url2)}">2ГИС</a>`:'')}
     </div>
     ${stt?`<div class="row"><button class="btn flat" onclick="setStatus('${id}',0,'',true);closeSheet()">Снять отметку</button></div>`
@@ -872,7 +911,7 @@ function editForm(s){
   <div class="field"><label>Режим работы</label><input id="f_hours" value="${esc(s.hours)}" placeholder="8:00–20:00"></div>
   <div class="field"><label>Заметка водителю</label><textarea id="f_note">${esc(s.note)}</textarea></div>
   <div class="field"><label>Ссылка на Яндекс.Карты</label><input id="f_url" value="${esc(s.url)}"></div>
-  <div class="field"><label>Ссылка на 2ГИС</label><input id="f_url2" value="${esc(s.url2||'')}"></div>
+  <details><summary>Резервная карта</summary><div class="field"><label>Дополнительная ссылка, если нужна</label><input id="f_url2" value="${esc(s.url2||'')}"></div></details>
   <div class="field"><label>Координаты</label>
     <input id="f_coord" value="${s.lat?s.lat+', '+s.lon:''}" placeholder="45.035, 38.975">
     <button class="mini" onclick="grabGPS()">📍 Взять с GPS — я на точке</button></div>
@@ -975,18 +1014,19 @@ document.getElementById('menuBtn').onclick=()=>{
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
   <h2>Управление</h2>
   <div style="margin-top:16px">
-    ${['2','3'].includes(route)?'<div class="menu-item" onclick="openDispatch()"><span class="ic">↗</span>Рейс водителю · выбрать точки и получить ссылку</div><div class="menu-item" onclick="openRouteImport()"><span class="ic">⇪</span>Загрузить сверенный список 2/3</div>':''}
+    ${['2','3'].includes(route)?'<div class="menu-item" onclick="openDispatch()"><span class="ic">↗</span>Собрать рейс вручную</div><div class="menu-item" onclick="openRouteImport()"><span class="ic">⇪</span>Обновить справочник маршрута 2/3</div>':''}
     <div class="menu-item" onclick="planForm()"><span class="ic">📅</span>План на день и шаблоны${ids?' · '+ids.length:''}</div>
   ${['2','3'].includes(route)?'<div class="menu-item" onclick="openPlanImport()"><span class="ic">⇪</span>Загрузить точки на сегодня</div>':''}
+    <details class="dispatch-history"><summary>Справочник и обслуживание</summary>
     <div class="menu-item" onclick="phonesForm()"><span class="ic">📞</span>Заполнить телефоны</div>
     <div class="menu-item" onclick="autoCoords()"><span class="ic">📍</span>Найти координаты (${list.filter(s=>!s.lat).length})</div>
     <div class="menu-item" onclick="dupCheck()"><span class="ic">⧉</span>Поиск дублей по всем маршрутам</div>
     <div class="menu-item" onclick="sortAz()"><span class="ic">Az</span>Отсортировать по алфавиту</div>
-    <div class="menu-item" onclick="bulkForm()"><span class="ic">＋</span>Загрузить список точек</div>
+    <div class="menu-item" onclick="bulkForm()"><span class="ic">＋</span>Добавить точки в справочник</div>
     <div class="menu-item" onclick="backupAll()"><span class="ic">💾</span>Копия всех маршрутов</div>
-    <div class="menu-item" onclick="exportForGithub()"><span class="ic">⤓</span>Выгрузить файлы для GitHub</div>
+    <div class="menu-item" onclick="exportForGithub()"><span class="ic">⤓</span>Экспорт справочника в файлы</div>
     <div class="menu-item" onclick="restoreForm()"><span class="ic">↺</span>Восстановить из копии</div>
-    <div class="menu-item" onclick="location.href='import.html'"><span class="ic">⇪</span>Импорт из Google Keep</div>
+    <div class="menu-item" onclick="location.href='import.html'"><span class="ic">⇪</span>Импорт из Google Keep</div></details>
   </div>`;
   document.getElementById('sheet').classList.add('open');
 };
@@ -1106,15 +1146,19 @@ async function dupCheck(){
 
 function bulkForm(){
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-  <h2>Загрузить список</h2>
+  <h2>Справочник · ${esc(rName(route))}</h2><div class="steps">Это добавит постоянные карточки в «Все точки». Для заявок на один день используйте «Загрузить список на сегодня».</div>
   <div class="field" style="margin-top:16px"><label>название | адрес | ссылка | телефон | заметка</label>
     <textarea id="bulk" style="min-height:180px"></textarea>
-    <div class="hint">По точке в строке. Хватит одного названия. Строки встанут в конец маршрута.</div></div>
+    <div class="hint">Для массового создания укажите название и адрес через «|». Для одной новой точки используйте «＋».</div></div>
   <div class="row"><button class="btn accent" onclick="bulkAdd()">Добавить</button></div>`;
 }
 async function bulkAdd(){
   const rows=document.getElementById('bulk').value.split('\n').map(r=>r.trim()).filter(Boolean);
   if(!rows.length){toast('Пусто');return}
+  if(rows.some(r=>{const [name,addr]=r.split('|').map(x=>x.trim());return !name||!addr})){
+    toast('Для справочника нужен формат «название | адрес». Список рейса загрузите в «Сегодня».');return
+  }
+  if(!confirm('Добавить постоянные карточки ('+rows.length+') в «Все точки» маршрута '+rName(route)+'? План дня не изменится.'))return;
   const have=list.map(s=>(s.name||'').toLowerCase());
   const dup=rows.map(r=>r.split('|')[0].trim()).filter(n=>have.includes(n.toLowerCase()));
   if(dup.length&&!confirm('Уже есть:\n'+dup.join('\n')+'\n\nВсё равно добавить?')) return;
@@ -1317,16 +1361,16 @@ function legsHtml(pts,label){
   return legs.map((g,i)=>`<div class="row"><a class="btn ${i?'flat':'accent'}" target="_blank" rel="noopener" href="${ylink(g)}">${label}${legs.length>1?` · часть ${i+1} (${i*10+1}–${i*10+g.length})`:''}</a></div>`).join('');
 }
 document.getElementById('navBtn').onclick=()=>{
-  const pts=visible().filter(s=>s.lat&&!st[s.id]);
+  const pts=visible().filter(s=>validPointCoords(s)&&!st[s.id]);
   if(!pts.length){toast('Нет точек с координатами');return}
-  if(pts.length===1){window.open(ylink(pts),'_blank');return}
+  if(pts.length===1){window.open(yandexPoint(pts[0]),'_blank','noopener,noreferrer');return}
   window._pts=pts;
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
     <h2>Маршрут · ${pts.length} точек</h2>
     <div class="steps">Порядок как в списке · примерно ${Math.round(totalKm(pts))} км${pts.length>10?'<br>Яндекс держит до 10 точек в ссылке, поэтому разбито на части.':''}</div>
     ${legsHtml(pts,'Ехать')}
     <div style="height:18px"></div>
-    <button class="btn flat" onclick="buildShort()">Кратчайший путь 🧭</button>`;
+    <button class="btn flat" onclick="buildShort()">Прикинуть другой порядок</button>`;
   document.getElementById('sheet').classList.add('open');
 };
 function buildShort(){
@@ -1335,10 +1379,10 @@ function buildShort(){
     const o=optimize(pts,start); window._opt=o;
     const was=Math.round(totalKm(pts)), now=Math.round(totalKm(o));
     document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-      <h2>Кратчайший путь</h2>
+      <h2>Примерный порядок</h2>
       <div class="steps">${now} км вместо ${was} км${was>now?` · короче на ${was-now} км`:''}<br><br>${o.map((s,i)=>`<b>${i+1}.</b> ${esc(s.name)}`).join('<br>')}</div>
       ${legsHtml(o,'Ехать')}
-      ${admin?`<div class="row"><button class="btn flat" onclick="applyShort()">Записать этот порядок в маршрут</button></div>`:''}`;
+      ${admin?`<div class="row"><button class="btn flat" onclick="applyShort()">Применить к плану дня</button></div>`:''}`;
   };
   if(navigator&&navigator.geolocation){
     toast('Определяю ваше место…');
@@ -1346,7 +1390,7 @@ function buildShort(){
   } else draw(null);
 }
 async function applyShort(){
-  const o=window._opt||[]; if(!o.length) return;
+  const o=window._opt||[]; if(!o.length) return; if(tab!=='day'||!planIds()){toast('Откройте «Сегодня», чтобы изменить порядок дня');return}
   const ids=o.map(s=>s.id);
   if(tab==='day'&&planIds()){
     plan.ids=ids.concat(plan.ids.filter(id=>!ids.includes(id)));
@@ -1358,42 +1402,38 @@ async function applyShort(){
   try{await push();toast('Порядок записан')}catch(e){toast(e.message)}
 }
 
-/* ---------- карта ---------- */
-document.getElementById('mapBtn').onclick=async()=>{
-  const pts=ordered().filter(s=>s.lat);
-  const c=document.getElementById('card');
-  if(!pts.length){toast('Ни у одной точки нет координат');return}
-  c.innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
-    <h2>Карта · ${pts.length} точек</h2>
-    <div class="hint" style="margin:6px 0 12px">Зелёные — сдано, красные — не сдано. Тап по метке — карточка.</div>
-    <div id="map"></div>`;
-  document.getElementById('sheet').classList.add('open');
-  await ensureLeaflet();
-  const map=L.map('map',{zoomControl:false}).setView([pts[0].lat,pts[0].lon],12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-  const bounds=[];
-  pts.forEach((s,i)=>{
-    const stt=st[s.id];
-    const cls='pin'+(stt?(stt.d?' done':' fail'):'');
-    const m=L.marker([s.lat,s.lon],{icon:L.divIcon({className:'',html:`<div class="${cls}">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
-    m.on('click',()=>{closeSheet();setTimeout(()=>openCard(s.id),120)});
-    bounds.push([s.lat,s.lon]);
-  });
-  if(bounds.length>1) map.fitBounds(bounds,{padding:[30,30]});
-  setTimeout(()=>map.invalidateSize(),200);
-};
-function ensureLeaflet(){
-  if(window.L) return Promise.resolve();
-  return new Promise(res=>{
-    const css=document.createElement('link');
-    css.rel='stylesheet'; css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(css);
-    const js=document.createElement('script');
-    js.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    js.onload=res; js.onerror=()=>{toast('Карта не загрузилась — нужен интернет');res()};
-    document.head.appendChild(js);
-  });
+/* ---------- Карта: Яндекс и карточки точек ---------- */
+function validPointCoords(s){
+  return typeof s.lat==='number'&&typeof s.lon==='number'&&Math.abs(s.lat)<=90&&Math.abs(s.lon)<=180&&(s.lat!==0||s.lon!==0);
 }
+function yandexPoint(s){
+  for(const link of [s.url,s.url2]){
+    try{
+      const u=new URL(link);
+      if(u.protocol==='https:'&&!u.username&&!u.password&&/^(?:www\.)?(?:yandex\.(?:ru|com|com\.tr|kz|by)|ya\.ru)$/i.test(u.hostname))return u.href;
+    }catch{}
+  }
+  return validPointCoords(s)?'https://yandex.ru/maps/?rtt=auto&rtext=~'+s.lat+','+s.lon:'';
+}
+document.getElementById('mapBtn').onclick=()=>{
+  const pts=ordered();
+  const c=document.getElementById('card');
+  const coords=pts.filter(validPointCoords);
+  const missing=pts.filter(s=>!yandexPoint(s));
+  c.innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
+    <h2>Яндекс Карты · ${pts.length} точек</h2>
+    <div class="steps">Откройте маршрут в Яндексе или отдельную точку. В общий маршрут входят точки с записанными координатами.
+    ${coords.length<pts.length?'<br>Без координат: '+(pts.length-coords.length)+'. Проверьте такие точки отдельно.':''}
+    ${missing.length?'<br>Без Яндекс-метки: '+missing.length+'.':''}</div>
+    ${coords.length?legsHtml(coords,'Маршрут в Яндекс Картах'):''}
+    <ol class="dispatch-rows">${pts.map(s=>{
+      const url=yandexPoint(s), mark=st[s.id];
+      return `<li><div class="dispatch-checkrow"><div><strong>${esc(s.name)}</strong><small>${esc(s.addr||'Адрес не указан')}</small>${mark?`<small>${mark.d?'Сдано':'Не сдано'+(mark.r?' · '+esc(mark.r):'')}</small>`:''}</div>
+      <div class="dispatch-actions">${url?`<a class="mini" target="_blank" rel="noopener noreferrer" href="${esc(url)}">На карте</a>`:'<small>Нет метки</small>'}<button class="mini" onclick="openCard('${s.id}')">Карточка</button></div>
+      </div></li>`;
+    }).join('')}</ol>`;
+  document.getElementById('sheet').classList.add('open');
+};
 
 document.getElementById('shareBtn').onclick=async()=>{
   if(admin&&['2','3'].includes(route)){openDispatch();return;}
