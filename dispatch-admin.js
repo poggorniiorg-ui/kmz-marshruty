@@ -12,7 +12,7 @@
     document.getElementById('sheet').classList.add('open');return c;
   };
   const api=async(path,options={})=>{
-    const res=await fetch('/api/'+path,{...options,cache:'no-store',headers:{...options.headers,'x-pass':pass}});
+    const res=await fetch('/api/'+path,{...options,cache:'no-store',headers:{...options.headers,...hdr()}});
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Сервер не принял изменения');
     return data;
