@@ -47,6 +47,21 @@ summary{cursor:pointer;min-height:44px;padding:11px 0;font-weight:700;color:var(
 #photoDialog::backdrop{background:#101d32c4}#photoDialog button{display:flex;margin:0 0 8px auto}
 #photoDialog img{display:block;max-width:100%;max-height:76vh;object-fit:contain;margin:auto}
 @media(max-width:380px){#next:not(:empty),#routeList{padding-inline:12px}a,button{padding-inline:9px}}
+
+:root{--accent:#194b84;--bg:#eef2f7;--tint:#edf4ff}
+header{border-radius:16px;padding:15px 16px 16px;background:#1b2739;color:white;margin-bottom:12px;box-shadow:0 6px 24px #16233822}
+header .brand,header p,header .eyebrow{color:#e0ebf9}
+header progress,header progress::-webkit-progress-bar{background:#425166}
+header progress::-webkit-progress-value{background:#91c6fb}
+header progress::-moz-progress-bar{background:#91c6fb}
+#next:not(:empty){border-top:1px solid var(--line);box-shadow:0 6px 24px #16233810}
+#next .hours{display:inline-block;font-weight:650;border-radius:7px;background:#ecf0f5;padding:4px 8px}
+#next .eyebrow{font-variant-numeric:tabular-nums}
+#next .primary{flex-basis:100%;min-height:49px;font-size:1.08rem}
+#next .photoButton{justify-content:flex-start;min-height:46px}
+#next .photoButton img{width:64px;height:49px}
+#next .note{border-inline-start:3px solid #7099c3}
+#routeList{border-radius:13px}
 </style>
 <script src="./driver.js" defer></script>
 </head>

@@ -39,6 +39,7 @@
     if(!panel)return;
     panel.hidden=!eligible();
     if(panel.hidden)return;
+    panel.querySelector('[data-dispatch-route]').textContent=rName(route);
     const n=planIds()?.length||0;
     panel.querySelector('[data-dispatch-count]').textContent=n?'На сегодня: '+n+' точек':'План на сегодня не задан';
     panel.querySelector('[data-dispatch-import]').disabled=!ready();
@@ -78,7 +79,7 @@
     if(!ready()){toast('Сначала обновите и сохраните маршрут');return;}
     const m=route, stops=list.slice(), planned=planIds()||[];
     const byId=new Map(stops.map(s=>[s.id,s]));
-    let selected=planned.filter(id=>byId.has(id)), date=today();
+    let selected=planned.filter(id=>byId.has(id)), date=today(), runLabel='';
     const c=emptyModal('');
     const current=()=>ready()&&route===m;
     const title=(text,back)=>{
@@ -91,8 +92,14 @@
     function pick(){
       title('Точки рейса · '+rName(m));
       element('p','Выберите точки. Порядок проверите на следующем шаге.',c);
-      const bar=header(c), search=element('input','',c);search.type='search';search.placeholder='Название или адрес';search.setAttribute('aria-label','Поиск точки');
-      const boxes=element('div','',c);
+      const layout=element('div','',c);layout.className='dispatch-picker';
+      const available=element('div','',layout);
+      const search=element('input','',available);search.type='search';search.placeholder='Название или адрес';search.setAttribute('aria-label','Поиск точки');
+      const boxes=element('div','',available);
+      const draft=element('section','',layout);draft.className='dispatch-draft';
+      const draftHeading=element('h3','Собранный рейс',draft);
+      const draftList=element('ol','',draft);
+      const bar=header(c);bar.classList.add('dispatch-picker-actions');
       const next=primary('',bar,review);
       const paint=()=>{
         boxes.replaceChildren();const q=search.value.trim().toLowerCase().replace(/ё/g,'е');
@@ -107,7 +114,12 @@
         }
         if(!displayed)element('p','Точки не найдены',boxes);
       };
-      function progress(){next.textContent='Проверить рейс · '+selected.length;next.disabled=!selected.length}
+      function progress(){
+        next.textContent='Проверить рейс · '+selected.length;next.disabled=!selected.length;
+        draftHeading.textContent='Собранный рейс · '+selected.length;
+        draftList.replaceChildren();
+        for(const id of selected){const s=byId.get(id);const li=element('li',s.name,draftList);element('small',address(s),li)}
+      }
       button('Снять все отметки',bar,()=>{selected=[];paint();progress()});
       search.addEventListener('input',paint);paint();progress();
     }
@@ -117,6 +129,9 @@
       element('p',rName(m)+' · '+selected.length+' точек. Этот порядок увидит водитель.',c);
       const label=element('label','Дата рейса',c);label.className='dispatch-date';
       const input=element('input','',label);input.type='date';input.value=date;
+      const nameLabel=element('label','Название рейса (необязательно, видишь только ты)',c);nameLabel.className='dispatch-name';
+      const nameInput=element('input','',nameLabel);nameInput.maxLength=80;nameInput.value=runLabel;nameInput.placeholder='Например: Сулейман, утро';
+      nameInput.addEventListener('input',()=>{runLabel=nameInput.value});
       const controls=header(c);
       const result=element('div','',c);result.setAttribute('role','status');result.className='dispatch-report';
       const rows=element('ol','',c);rows.className='dispatch-rows';
@@ -130,12 +145,12 @@
         if(!visible()||creating||!checked||!input.reportValidity())return;
         creating=true;update();result.textContent='Создаю рейс…';
         try{
-          const data=await api('dispatch',json('POST',{route:m,date,ids:selected}));
+          const data=await api('dispatch',json('POST',{route:m,date,ids:selected,label:runLabel}));
           if(visible())showLink(data);
         }catch(e){if(visible()){result.textContent=e.message;creating=false;update()}}
       });
       function update(){
-        create.disabled=!checked||creating||!date;preview.disabled=creating||!date;input.disabled=creating;
+        create.disabled=!checked||creating||!date;preview.disabled=creating||!date;input.disabled=creating;nameInput.disabled=creating;
         rows.querySelectorAll('button').forEach(b=>{b.disabled=creating||b.dataset.boundary==='yes'});
       }
       function paintRows(focusId,focusDir){
@@ -155,6 +170,7 @@
           else if(info?.marker===false)flag('Координаты не записаны','marker');
           if(info?.photo==='missing'||!s.photo)flag('Нет фото','photo');
           else if(info?.photo==='unknown'||(checked&&!info))flag('Фото не проверено','unknown');
+          if(flags.childElementCount)item.classList.add('dispatch-has-warning');
           const arrows=element('div','',card);arrows.className='dispatch-arrows';
           for(const [glyph,dir,word] of [['↑',-1,'выше'],['↓',1,'ниже']]){
             const b=button(glyph,arrows,()=>{
@@ -179,65 +195,169 @@
     }
     function showLink(data){
       title('Рейс готов');
-      element('p',rName(m)+' · '+fmtDate(date)+' · '+data.count+' точек',c);
+      element('p',rName(m)+' · '+fmtDate(date)+' · '+data.count+' точек · № '+data.code+(runLabel.trim()?' · '+runLabel.trim():''),c);
       element('p','Ссылка действует до '+new Date(data.expires).toLocaleString('ru-RU')+'. Список в ней зафиксирован. Отправляйте только нужному водителю.',c);
       const url=new URL('./driver.html',location.href);url.hash='t='+encodeURIComponent(data.token);
       const field=element('input','',c);field.value=url.href;field.readOnly=true;field.className='dispatch-url';field.setAttribute('aria-label','Ссылка водителю');
       const actions=header(c);
       primary('Скопировать ссылку',actions,async()=>{try{await navigator.clipboard.writeText(url.href);toast('Ссылка скопирована')}catch{field.focus();field.select();toast('Скопируйте выделенную ссылку')}});
       if(navigator.share)button('Поделиться',actions,()=>navigator.share({title:'Рейс КМЗ №1',url:url.href}).catch(()=>{}));
-      button('Рейсы и статусы',actions,()=>openDispatchHistory(m));
+      button('Ход этого рейса',actions,()=>openDispatchHistory(m,data.id));
     }
     if(todayOnly&&selected.length)review();else pick();
   };
-  window.openDispatchHistory=(m=route)=>{
+
+  const clockLabel=at=>new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(at);
+  const fullTime=at=>new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(at);
+  const activeRun=d=>!d.revoked&&d.expires>Date.now();
+  const runName=d=>d.label||('Рейс '+d.code);
+  const runState=d=>d.revoked?'Ссылка отозвана':d.expires<=Date.now()?'Ссылка истекла':'Ссылка действует';
+  const interval=15000;
+
+  window.openDispatchHistory=(m=route,runId='')=>{
     if(!eligible()){toast('Войдите в управление маршрутом 2 или 3');return}
-    const c=emptyModal('Последние рейсы');
-    const bar=header(c);
-    const selector=element('select','',bar);selector.setAttribute('aria-label','Маршрут для истории рейсов');
-    for(const id of ['2','3']){const o=element('option',rName(id),selector);o.value=id}
-    selector.value=m;
-    const content=element('div','',c);
-    let sequence=0;
-    const valid=()=>admin&&c.contains(content)&&document.getElementById('sheet').classList.contains('open');
-    async function refresh(){
-      const seq=++sequence;
-      content.replaceChildren();element('p','Загружаю рейсы…',content);
-      try{
-        const data=await api('dispatch?route='+encodeURIComponent(selector.value));
-        if(!valid()||seq!==sequence)return;
-        content.replaceChildren();
-        if(!data.runs.length)element('p','По этому маршруту ещё нет рейсов.',content);
-        if(data.truncated)element('p','Показаны последние рейсы.',content);
-        for(const item of data.runs){
-          const card=element('details','',content);card.className='dispatch-history';
-          const summary=element('summary','',card);
-          element('strong',fmtDate(item.date)+' · '+item.count+' точек',summary);
-          element('small','Сдано '+item.done+' · не сдано '+item.failed+' · без отметки '+item.pending+(item.revoked?' · ссылка отозвана':item.expires<=Date.now()?' · ссылка истекла':''),summary);
-          const details=element('div','',card);
-          card.addEventListener('toggle',async()=>{
-            if(!card.open)return;
-            details.replaceChildren();element('p','Обновляю отметки…',details);
-            try{
-              const detail=await api('dispatch?id='+encodeURIComponent(item.id));
-              if(!valid()||!details.isConnected)return;
-              details.replaceChildren();const ol=element('ol','',details);
-              for(const row of detail.rows){
-                const li=element('li','',ol);element('b',row.name,li);element('small',address(row),li);
-                element('small',row.status?.state==='done'?'Сдано':row.status?.state==='failed'?'Не сдано'+(row.status.reason?' · '+row.status.reason:''):'Без отметки',li);
-              }
-              if(!detail.revoked&&detail.expires>Date.now())button('Отозвать ссылку',details,async e=>{
-                if(!confirm('Отозвать ссылку? Водитель больше не сможет открыть этот рейс.'))return;
-                const b=e.currentTarget;b.disabled=true;
-                try{await api('dispatch?id='+encodeURIComponent(item.id),{method:'DELETE'});if(valid())await refresh()}
-                catch(err){toast(err.message);b.disabled=false}
-              });
-            }catch(e){details.textContent=e.message}
-          });
-        }
-      }catch(e){if(valid()&&seq===sequence)content.textContent=e.message}
+    const sheet=document.getElementById('sheet');
+    const c=emptyModal('Ход рейса');
+    const pane=element('div','',c);
+    const valid=()=>admin&&pane.isConnected&&sheet.classList.contains('open');
+    let generation=0,dispose=()=>{};
+    const reset=()=>{
+      dispose();dispose=()=>{};pane.replaceChildren();c.scrollTop=0;
+      return ++generation;
+    };
+    const same=g=>valid()&&g===generation;
+    const watcher=new MutationObserver(()=>{
+      if(valid())return;
+      dispose();watcher.disconnect();
+    });
+    watcher.observe(c,{childList:true});watcher.observe(sheet,{attributes:true,attributeFilter:['class']});
+
+    function listRuns(){
+      const g=reset();
+      element('p','Выберите рейс из истории или вставьте ту самую ссылку, которую отправили водителю.',pane);
+      const lookup=element('form','',pane);lookup.className='dispatch-lookup';
+      const label=element('label','Ссылка водителя',lookup);
+      const input=element('input','',label);input.type='url';input.required=true;input.maxLength=450;
+      input.placeholder='Вставьте ссылку из переписки';input.autocomplete='off';input.spellcheck=false;
+      const search=element('button','Найти рейс',lookup);search.className='mini';
+      const status=element('p','',pane);status.setAttribute('role','status');
+      lookup.addEventListener('submit',async e=>{
+        e.preventDefault();
+        if(search.disabled)return;
+        let token;
+        try{
+          const link=new URL(input.value.trim());
+          if(link.origin!==location.origin||!link.pathname.endsWith('/driver.html'))throw Error();
+          token=new URLSearchParams(link.hash.slice(1)).get('t');
+          if(!/^[A-Za-z0-9_-]{32}$/.test(token||''))throw Error();
+        }catch{status.textContent='Вставьте полную ссылку водителя с этого сайта.';return}
+        search.disabled=true;status.textContent='Ищу рейс…';
+        try{
+          const detail=await api('dispatch-lookup',json('POST',{token}));
+          if(same(g))showRun(detail.id,detail);
+        }catch(err){if(same(g))status.textContent=err.message}
+        finally{search.disabled=false}
+      });
+      const bar=header(pane,'Недавние ссылки');
+      const selector=element('select','',bar);selector.setAttribute('aria-label','Маршрут для истории рейсов');
+      for(const id of ['2','3']){const o=element('option',rName(id),selector);o.value=id}
+      selector.value=m;
+      const content=element('div','',pane);
+      let seq=0;
+      async function refresh(){
+        const i=++seq;m=selector.value;
+        content.replaceChildren();element('p','Загружаю рейсы…',content);
+        try{
+          const data=await api('dispatch?route='+encodeURIComponent(m));
+          if(!same(g)||i!==seq)return;
+          content.replaceChildren();
+          if(!data.runs.length)element('p','По этому маршруту ещё нет рейсов.',content);
+          for(const item of data.runs){
+            const card=button('',content,()=>showRun(item.id));card.classList.add('dispatch-runcard');
+            element('strong',runName(item),card);
+            element('small',fmtDate(item.date)+(item.label?' · № '+item.code:'')+(item.created?' · ссылка создана '+fullTime(item.created):''),card);
+            element('small','Сдано '+item.done+' из '+item.count+' · не сдано '+item.failed+' · осталось '+item.pending+' · '+runState(item),card);
+          }
+          if(data.truncated)element('p','Более ранний рейс можно найти по его ссылке.',content);
+        }catch(e){if(same(g)&&i===seq)content.textContent=e.message}
+      }
+      button('Обновить список',bar,refresh);selector.addEventListener('change',refresh);refresh();
     }
-    button('Обновить статусы',bar,refresh);selector.addEventListener('change',refresh);refresh();
+
+    function showRun(id,first){
+      const g=reset();
+      const controls=header(pane);
+      button('← К списку рейсов',controls,listRuns);
+      const refresh=button('Обновить отметки',controls,()=>read());
+      const title=element('h3','Рейс',pane);
+      const details=element('p','',pane);
+      const chips=element('div','',pane);chips.className='dispatch-live-counts';
+      const track=element('progress','',pane);track.className='dispatch-meter';track.hidden=true;
+      track.setAttribute('aria-label','Точки с отметкой');
+      const sync=element('p','Загружаю отметки…',pane);sync.className='dispatch-sync';sync.setAttribute('role','status');
+      const next=element('p','',pane);
+      const ol=element('ol','',pane);ol.className='dispatch-live-rows';
+      let current=null,inflight=false,timer,lastFingerprint='';
+      const revoke=button('Отозвать ссылку',pane,async()=>{
+        if(!current||!activeRun(current)||!confirm('Отозвать ссылку? Водитель больше не сможет открыть этот рейс.'))return;
+        revoke.disabled=true;
+        try{await api('dispatch?id='+encodeURIComponent(id),{method:'DELETE'});if(same(g)){current={...current,revoked:true};paint(current);sync.textContent='Ссылка отозвана.';}}
+        catch(e){if(same(g)){toast(e.message);revoke.disabled=false}}
+      });
+      revoke.hidden=true;
+      function paint(d){
+        const fingerprint=JSON.stringify(d);
+        if(fingerprint===lastFingerprint&&revoke.hidden===!activeRun(d))return;
+        current=d;m=d.route;lastFingerprint=fingerprint;
+        const done=d.rows.filter(x=>x.status?.state==='done').length;
+        const failed=d.rows.filter(x=>x.status?.state==='failed').length;
+        title.textContent=rName(d.route)+' · '+runName(d);
+        details.textContent=fmtDate(d.date)+' · № '+d.code+' · '+runState(d);
+        chips.replaceChildren();
+        for(const [n,label,style] of [[done,'Сдано','done'],[failed,'Не сдано','failed'],[d.count-done-failed,'Осталось','pending']]){
+          const chip=element('div','',chips);chip.className=style;
+          element('b',String(n),chip);element('small',label,chip);
+        }
+        track.hidden=!d.count;track.max=d.count||1;track.value=done+failed;
+        const pending=d.rows.findIndex(r=>!r.status||r.status.state==='pending');
+        next.textContent=pending>=0?'Первая без отметки: '+(pending+1)+'. '+d.rows[pending].name:'Все точки отмечены';
+        ol.replaceChildren();
+        for(const row of d.rows){
+          const li=element('li','',ol), body=element('div','',li);
+          element('strong',row.name,body);if(row.addr)element('small',row.addr,body);
+          const state=row.status?.state;
+          const badge=element('span',state==='done'?'Сдано':state==='failed'?'Не сдано':'Без отметки',li);
+          badge.className='dispatch-badge '+(state==='done'||state==='failed'?state:'pending');
+          if(row.status?.at){
+            const time=new Date(row.status.at);
+            if(Number.isFinite(+time))element('small','Отметка: '+fullTime(+time)+' МСК',body);
+          }
+          if(state==='failed')element('small','Причина: '+(row.status.reason||'не указана'),body);
+        }
+        revoke.hidden=!activeRun(d);revoke.disabled=false;
+        if(!activeRun(d))clearInterval(timer);
+      }
+      async function read(){
+        if(!same(g)||document.hidden||inflight)return;
+        inflight=true;refresh.disabled=true;
+        try{
+          const d=await api('dispatch?id='+encodeURIComponent(id));
+          if(!same(g))return;
+          // A concurrent read started before revocation must not reopen controls.
+          paint(current?.revoked?{...d,revoked:true}:d);
+          sync.textContent='Обновлено '+clockLabel(Date.now())+' МСК'+(activeRun(current)?' · автообновление каждые 15 с.':'')+' · отметки, не GPS';
+        }catch(e){
+          if(same(g))sync.textContent='Не удалось обновить отметки: '+e.message+(current?'. Показаны последние полученные данные.':'');
+        }finally{inflight=false;refresh.disabled=false}
+      }
+      function onVisible(){if(!document.hidden&&(!current||activeRun(current)))read()}
+      timer=setInterval(onVisible,interval);
+      document.addEventListener('visibilitychange',onVisible);
+      dispose=()=>{clearInterval(timer);document.removeEventListener('visibilitychange',onVisible)};
+      if(first)paint(first);
+      read();
+    }
+    if(runId)showRun(runId);else listRuns();
   };
 
   window.openRouteImport=()=>{
