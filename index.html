@@ -1079,7 +1079,7 @@ function planForm(){
     <button class="btn flat" onclick="planClear()">Снять план</button></div>
   <div class="field" style="margin-top:22px"><label>Список клиентов на сегодня</label>
     <textarea id="planlist" style="min-height:150px" placeholder="Курпитко Атарбекова&#10;Молов Минская&#10;Титаренко"></textarea>
-    <div class="hint">Вставьте фамилии из таблицы, по одной в строке. Порядок объезда сохранится как в списке.</div>
+    <div class="hint">Вставьте фамилии из таблицы, по одной в строке. ${route==='2'?'Выбранные точки встанут в порядке развоза из «Все точки».':'Порядок объезда сохранится как в списке.'}</div>
     <div class="row"><button class="btn accent" onclick="planFromList()">Составить маршрут на день</button></div></div>
   <div class="field" style="margin-top:22px"><label>Сохранить нынешний план как шаблон</label>
     <select id="f_tpl">${days.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
@@ -1135,12 +1135,13 @@ async function planFromList(){
     else miss.push(r);
   });
   if(!found.length&&!amb.length){toast('Ни одна строка не совпала');return}
-  plan={date:today(),ids:found.map(s=>s.id)};
+  const ordered=KMZPlan.orderImportedStops(route,list,found);
+  plan={date:today(),ids:ordered.map(s=>s.id)};
   tab='day'; render();
   try{await push()}catch(e){toast(e.message)}
   document.getElementById('card').innerHTML=`<button class="close" onclick="closeSheet()">✕</button>
     <h2>План на сегодня</h2>
-    <div class="steps">В маршруте: <b>${found.length}</b> точек · порядок исходного списка сохранён${miss.length?`<br><br><span style="color:var(--warn)">Не нашлись:</span><br>${miss.map(esc).join('<br>')}`:''}
+    <div class="steps">В маршруте: <b>${found.length}</b> точек · ${route==='2'?'в порядке развоза из «Все точки»':'порядок исходного списка сохранён'}${miss.length?`<br><br><span style="color:var(--warn)">Не нашлись:</span><br>${miss.map(esc).join('<br>')}`:''}
     ${amb.length?`<br><br><span style="color:var(--warn)">Совпало несколько — уточните адрес:</span><br>${amb.map(a=>esc(a.q)+' → '+a.list.map(esc).join(' / ')).join('<br>')}`:''}</div>
     <div class="hint">Неоднозначные не добавлены — отметьте их галочкой вручную. Порядок правится ручкой ⠿ на вкладке «Сегодня».</div>`;
 }

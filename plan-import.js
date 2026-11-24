@@ -17,7 +17,12 @@
       return {row,state,stop};
     });
   }
-  window.KMZPlan={parse,match};
+  function orderImportedStops(routeId,stops,matched){
+    if(routeId!=='2') return matched;
+    const selected=new Set(matched.map(stop=>stop.id));
+    return stops.filter(stop=>selected.has(stop.id));
+  }
+  window.KMZPlan={parse,match,orderImportedStops};
   function make(parent,tag,label){
     const e=document.createElement(tag);e.textContent=label;parent.append(e);return e;
   }
@@ -34,7 +39,8 @@
     const ta=make(c,'textarea','');ta.id=l.htmlFor;ta.rows=8;
     const fl=make(c,'label','Или выберите файл .txt (UTF‑8)');fl.htmlFor='plan-import-file';
     const file=make(c,'input','');file.id=fl.htmlFor;file.type='file';file.accept='.txt,text/plain';
-    const message=make(c,'p','Предпросмотр ничего не меняет. Порядок строк сохраняется. Справочник не изменится.');message.setAttribute('role','status');
+    const routeOrder=activeRoute==='2';
+    const message=make(c,'p',routeOrder?'Вставьте точки в любом порядке. В рейсе они встанут как в «Все точки».':'Предпросмотр ничего не меняет. Порядок строк сохраняется. Справочник не изменится.');message.setAttribute('role','status');
     const controls=make(c,'div','');controls.className='row';
     const result=make(c,'div','');
     let preview=null;
@@ -45,7 +51,7 @@
       plan={date:today(),ids};
       try{
         await push();tab='day';render();
-        c.replaceChildren();make(c,'h2','План на сегодня сохранён');make(c,'p','Точек: '+ids.length+' · порядок из списка сохранён.');
+        c.replaceChildren();make(c,'h2','План на сегодня сохранён');make(c,'p','Точек: '+ids.length+(routeOrder?' · в порядке развоза.':' · порядок из списка сохранён.'));
         action(c,'Проверить рейс',()=>openDispatch({todayOnly:true}));action(c,'Закрыть',closeSheet);
       }catch(e){
         plan=oldPlan;tab=oldTab;dirty=false;render();
@@ -65,13 +71,20 @@
       message.textContent='Совпало: '+ok.length+' · не определено: '+errors.length+' · повторов: '+duplicates.length+'.';
       if(originalPlan?.date===today()&&originalPlan.ids?.length)
         make(result,'p','Сохранение заменит текущий план ('+originalPlan.ids.length+' точек). Справочник не изменится.');
-      const lines=make(result,'ol','');
-      for(const x of checks){
+      const ordered=orderImportedStops(activeRoute,stops,ok.map(x=>x.stop));
+      if(routeOrder && ordered.length){
+        make(result,'h3','Порядок развоза');
+        const itinerary=make(result,'ol','');
+        for(const stop of ordered) make(itinerary,'li',stop.name);
+      }
+      const details=routeOrder?checks.filter(x=>x.state!=='found'):checks;
+      const lines=details.length?make(result,routeOrder?'ul':'ol',''):null;
+      for(const x of details){
         const title=x.state==='found'?x.stop.name:x.state==='duplicate'?x.row+' · повтор, не будет добавлен':x.state==='ambiguous'?x.row+' · уточните: '+x.options.map(s=>s.name+(s.addr?' ('+s.addr+')':'')).join(' / '):x.row+' · нет совпадения';
         make(lines,'li',title);
       }
       if(errors.length)make(result,'p','Исправьте строки с вопросами и нажмите «Проверить список» ещё раз. План пока не изменён.');
-      if(ok.length&&!errors.length){preview=ok.map(x=>x.stop.id);apply.disabled=false;}
+      if(ordered.length&&!errors.length){preview=ordered.map(stop=>stop.id);apply.disabled=false;}
     });
     apply.disabled=true;
     ta.addEventListener('input',clear);
